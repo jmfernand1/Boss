@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Equipo{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="fas fa-users"></i> Dashboard del Equipo</h1>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ total_employees }}</h3>
+                    <p class="mb-0">Empleados Activos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">{{ current_absences|length }}</h3>
+                    <p class="mb-0">Ausencias Hoy</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-info">{{ upcoming_birthdays|length }}</h3>
+                    <p class="mb-0">Cumpleaños (30 días)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-success">{{ upcoming_absences|length }}</h3>
+                    <p class="mb-0">Próximas Ausencias</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Ausencias Actuales -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar-times"></i> Ausencias de Hoy</h5>
+                </div>
+                <div class="card-body">
+                    {% if current_absences %}
+                        <div class="list-group">
+                            {% for absence in current_absences %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="mb-1">{{ absence.employee.full_name }}</h6>
+                                        <small>{{ absence.absence_type.name }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted">
+                                            {{ absence.start_date|date:"d/m" }} - {{ absence.end_date|date:"d/m" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="mb-0">No hay ausencias registradas para hoy</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Próximos Cumpleaños -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-birthday-cake"></i> Próximos Cumpleaños</h5>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_birthdays %}
+                        <div class="list-group">
+                            {% for birthday in upcoming_birthdays %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="mb-1">{{ birthday.employee.full_name }}</h6>
+                                        <small>{{ birthday.employee.position }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <strong>{{ birthday.birthday|date:"d/m/Y" }}</strong>
+                                        <br>
+                                        <small class="text-muted">Cumple {{ birthday.age }} años</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="mb-0">No hay cumpleaños en los próximos 30 días</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accesos Rápidos -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4>Accesos Rápidos</h4>
+            <div class="btn-group" role="group">
+                <a href="{% url 'team:employee_list' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-users"></i> Ver Empleados
+                </a>
+                <a href="{% url 'team:absence_list' %}" class="btn btn-outline-warning">
+                    <i class="fas fa-calendar-times"></i> Gestionar Ausencias
+                </a>
+                <a href="{% url 'team:vacation_summary' %}" class="btn btn-outline-success">
+                    <i class="fas fa-umbrella-beach"></i> Control de Vacaciones
+                </a>
+                <a href="{% url 'team:birthday_calendar' %}" class="btn btn-outline-info">
+                    <i class="fas fa-birthday-cake"></i> Calendario de Cumpleaños
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

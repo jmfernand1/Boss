@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block title %}BOSS - Dashboard Principal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-4">
+                <i class="fas fa-tachometer-alt"></i> Dashboard Principal
+            </h1>
+            <p class="lead">Bienvenido {{ user.get_full_name|default:user.username }}</p>
+        </div>
+    </div>
+
+    <!-- Estadísticas Rápidas -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Empleados Activos</h6>
+                            <h2 class="mb-0">{{ stats.total_employees }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-primary-dark">
+                    <a href="{% url 'team:employee_list' %}" class="text-white text-decoration-none">
+                        Ver todos <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Ausencias Hoy</h6>
+                            <h2 class="mb-0">{{ stats.current_absences }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-calendar-times"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-warning-dark">
+                    <a href="{% url 'team:absence_list' %}" class="text-white text-decoration-none">
+                        Ver ausencias <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Iniciativas Activas</h6>
+                            <h2 class="mb-0">{{ stats.initiatives_in_progress }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-success-dark">
+                    <a href="{% url 'initiatives:initiative_list' %}?status=IN_PROGRESS" class="text-white text-decoration-none">
+                        Ver iniciativas <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Bloqueadas</h6>
+                            <h2 class="mb-0">{{ stats.initiatives_blocked }}</h2>
+                        </div>
+                        <div class="fs-1">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-danger-dark">
+                    <a href="{% url 'initiatives:initiative_list' %}?status=BLOCKED" class="text-white text-decoration-none">
+                        Ver bloqueadas <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Columna Izquierda -->
+        <div class="col-md-6">
+            <!-- Mis Iniciativas -->
+            {% if my_initiatives %}
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-tasks"></i> Mis Iniciativas Activas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for initiative in my_initiatives %}
+                        <a href="{% url 'initiatives:initiative_detail' initiative.pk %}" 
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ initiative.title }}</h6>
+                                    <small class="text-muted">{{ initiative.initiative_type.name }}</small>
+                                </div>
+                                <div>
+                                    {% if initiative.status == 'IN_PROGRESS' %}
+                                        <span class="badge bg-success">En Progreso</span>
+                                    {% elif initiative.status == 'BLOCKED' %}
+                                        <span class="badge bg-danger">Bloqueado</span>
+                                    {% endif %}
+                                    <div class="progress mt-1" style="width: 100px;">
+                                        <div class="progress-bar" style="width: {{ initiative.progress }}%">
+                                            {{ initiative.progress }}%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Próximos Cumpleaños -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-birthday-cake"></i> Próximos Cumpleaños</h5>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_birthdays %}
+                        <div class="list-group">
+                            {% for birthday in upcoming_birthdays %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ birthday.employee.full_name }}</h6>
+                                        <small class="text-muted">{{ birthday.employee.position }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <strong>{{ birthday.birthday|date:"d/m" }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ birthday.age }} años</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">No hay cumpleaños próximos</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha -->
+        <div class="col-md-6">
+            <!-- Quarter Activo -->
+            {% if active_quarter %}
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Periodo Activo: {{ active_quarter }}</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h6 class="text-muted">Inicio</h6>
+                            <p class="mb-0">{{ active_quarter.start_date|date:"d/m/Y" }}</p>
+                        </div>
+                        <div class="col-6">
+                            <h6 class="text-muted">Fin</h6>
+                            <p class="mb-0">{{ active_quarter.end_date|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="d-grid">
+                        <a href="{% url 'initiatives:quarter_summary' %}" class="btn btn-outline-secondary">
+                            Ver Resumen del Quarter
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Actualizaciones Recientes -->
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-bell"></i> Actualizaciones Recientes</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_updates %}
+                        <div class="list-group list-group-flush">
+                            {% for update in recent_updates %}
+                            <div class="list-group-item px-0">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            {% if update.update_type == 'PROGRESS' %}
+                                                <i class="fas fa-chart-line text-success"></i>
+                                            {% elif update.update_type == 'BLOCKER' %}
+                                                <i class="fas fa-ban text-danger"></i>
+                                            {% elif update.update_type == 'RISK' %}
+                                                <i class="fas fa-exclamation-triangle text-warning"></i>
+                                            {% elif update.update_type == 'ACHIEVEMENT' %}
+                                                <i class="fas fa-trophy text-primary"></i>
+                                            {% else %}
+                                                <i class="fas fa-comment text-secondary"></i>
+                                            {% endif %}
+                                            {{ update.title }}
+                                        </h6>
+                                        <p class="mb-1 small">{{ update.initiative.title }}</p>
+                                        <small class="text-muted">
+                                            Por {{ update.created_by.get_full_name|default:update.created_by.username }} 
+                                            - {{ update.created_at|date:"d/m/Y H:i" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">No hay actualizaciones recientes</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

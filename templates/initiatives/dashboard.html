@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Iniciativas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="fas fa-tasks"></i> Dashboard de Iniciativas</h1>
+            {% if active_quarter %}
+                <p class="lead">Periodo Activo: {{ active_quarter }}</p>
+            {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> No hay un periodo (Q) activo configurado.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if active_quarter %}
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ stats.total }}</h3>
+                    <p class="mb-0">Total</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-success">{{ stats.in_progress }}</h3>
+                    <p class="mb-0">En Progreso</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-info">{{ stats.completed }}</h3>
+                    <p class="mb-0">Completadas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-danger">{{ stats.blocked }}</h3>
+                    <p class="mb-0">Bloqueadas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">{{ stats.operational }}</h3>
+                    <p class="mb-0">Operativas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-secondary">{{ stats.avg_progress|floatformat:0 }}%</h3>
+                    <p class="mb-0">Progreso Promedio</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sprint Activo -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-running"></i> Sprint Activo</h5>
+                </div>
+                <div class="card-body">
+                    {% if active_sprint %}
+                        <h6>{{ active_sprint.name }}</h6>
+                        <p class="mb-2">{{ active_sprint.start_date|date:"d/m/Y" }} - {{ active_sprint.end_date|date:"d/m/Y" }}</p>
+                        {% if active_sprint.goal %}
+                            <p class="mb-0"><strong>Objetivo:</strong> {{ active_sprint.goal }}</p>
+                        {% endif %}
+                        <hr>
+                        <a href="{% url 'initiatives:sprint_board' %}" class="btn btn-sm btn-outline-primary">
+                            Ver Tablero del Sprint
+                        </a>
+                    {% else %}
+                        <p class="mb-0">No hay un sprint activo en este momento</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Iniciativas Recientes -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-list"></i> Iniciativas Recientes</h5>
+                </div>
+                <div class="card-body">
+                    {% if initiatives %}
+                        <div class="list-group">
+                            {% for initiative in initiatives %}
+                            <a href="{% url 'initiatives:initiative_detail' initiative.pk %}" 
+                               class="list-group-item list-group-item-action">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="mb-1">{{ initiative.title }}</h6>
+                                        <small>{{ initiative.owner.full_name }} - {{ initiative.initiative_type.name }}</small>
+                                    </div>
+                                    <div>
+                                        {% if initiative.status == 'IN_PROGRESS' %}
+                                            <span class="badge bg-success">En Progreso</span>
+                                        {% elif initiative.status == 'COMPLETED' %}
+                                            <span class="badge bg-info">Completado</span>
+                                        {% elif initiative.status == 'BLOCKED' %}
+                                            <span class="badge bg-danger">Bloqueado</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ initiative.get_status_display }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="progress mt-2" style="height: 5px;">
+                                    <div class="progress-bar" style="width: {{ initiative.progress }}%"></div>
+                                </div>
+                            </a>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'initiatives:initiative_list' %}" class="btn btn-sm btn-outline-success">
+                                Ver Todas las Iniciativas
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="mb-0">No hay iniciativas registradas</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actualizaciones Recientes -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-bell"></i> Actualizaciones Recientes</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_updates %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Iniciativa</th>
+                                        <th>Actualización</th>
+                                        <th>Por</th>
+                                        <th>Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for update in recent_updates %}
+                                    <tr>
+                                        <td>
+                                            {% if update.update_type == 'PROGRESS' %}
+                                                <span class="badge bg-success">Progreso</span>
+                                            {% elif update.update_type == 'BLOCKER' %}
+                                                <span class="badge bg-danger">Bloqueo</span>
+                                            {% elif update.update_type == 'RISK' %}
+                                                <span class="badge bg-warning">Riesgo</span>
+                                            {% elif update.update_type == 'ACHIEVEMENT' %}
+                                                <span class="badge bg-primary">Logro</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Comentario</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'initiatives:initiative_detail' update.initiative.pk %}">
+                                                {{ update.initiative.title|truncatewords:5 }}
+                                            </a>
+                                        </td>
+                                        <td>{{ update.title }}</td>
+                                        <td>{{ update.created_by.get_full_name|default:update.created_by.username }}</td>
+                                        <td>{{ update.created_at|date:"d/m/Y H:i" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="mb-0">No hay actualizaciones recientes</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Accesos Rápidos -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <h4>Accesos Rápidos</h4>
+            <div class="btn-group" role="group">
+                <a href="{% url 'initiatives:initiative_list' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-list"></i> Lista de Iniciativas
+                </a>
+                <a href="{% url 'initiatives:operational_tasks' %}" class="btn btn-outline-warning">
+                    <i class="fas fa-cogs"></i> Tareas Operativas
+                </a>
+                <a href="{% url 'initiatives:sprint_board' %}" class="btn btn-outline-success">
+                    <i class="fas fa-columns"></i> Tablero Sprint
+                </a>
+                <a href="{% url 'initiatives:quarter_summary' %}" class="btn btn-outline-info">
+                    <i class="fas fa-chart-pie"></i> Resumen del Q
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
