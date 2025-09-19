@@ -12,6 +12,19 @@
     <!-- Custom CSS -->
     {% load static %}
     <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <style>
+        /* Estilos para el botón de logout en dropdown */
+        .logout-form {
+            margin: 0 !important;
+        }
+        .logout-form .dropdown-item {
+            cursor: pointer;
+        }
+        .logout-form .dropdown-item:hover {
+            background-color: var(--bs-dropdown-link-hover-bg);
+            color: var(--bs-dropdown-link-hover-color);
+        }
+    </style>
     
     {% block extra_css %}{% endblock %}
 </head>
@@ -33,10 +46,13 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{% url 'team:dashboard' %}">Dashboard</a></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{% url 'team:employee_list' %}">Empleados</a></li>
                             <li><a class="dropdown-item" href="{% url 'team:absence_list' %}">Ausencias</a></li>
                             <li><a class="dropdown-item" href="{% url 'team:vacation_summary' %}">Vacaciones</a></li>
                             <li><a class="dropdown-item" href="{% url 'team:birthday_calendar' %}">Cumpleaños</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'team:absence_type_list' %}">Tipos de Ausencia</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
@@ -65,9 +81,16 @@
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
                                 {% endif %}
-                                <li><a class="dropdown-item" href="{% url 'logout' %}">
-                                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                                </a></li>
+                                <li>
+                                    <form method="post" action="{% url 'logout' %}" class="logout-form">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item border-0 bg-transparent w-100 text-start p-0">
+                                            <span class="d-block px-3 py-2">
+                                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                                            </span>
+                                        </button>
+                                    </form>
+                                </li>
                             </ul>
                         </li>
                     {% else %}

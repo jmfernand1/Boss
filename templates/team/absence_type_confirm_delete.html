@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Tipo de Ausencia - BOSS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-tag text-danger"></i> Eliminar Tipo de Ausencia</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'team:absence_type_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a Tipos
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                    </div>
+                    
+                    <p>¿Está seguro que desea eliminar el siguiente tipo de ausencia?</p>
+                    
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <div class="row mb-2">
+                                <div class="col-sm-4"><strong>Nombre:</strong></div>
+                                <div class="col-sm-8">{{ absence_type.name }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-sm-4"><strong>Código:</strong></div>
+                                <div class="col-sm-8"><code>{{ absence_type.code }}</code></div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-sm-4"><strong>Color:</strong></div>
+                                <div class="col-sm-8">
+                                    <span class="badge" style="background-color: {{ absence_type.color }}">
+                                        {{ absence_type.color }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-sm-4"><strong>Configuración:</strong></div>
+                                <div class="col-sm-8">
+                                    {% if absence_type.requires_approval %}
+                                        <span class="badge bg-warning">Requiere Aprobación</span>
+                                    {% endif %}
+                                    {% if absence_type.paid %}
+                                        <span class="badge bg-success">Remunerado</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">No Remunerado</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'team:absence_type_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Sí, Eliminar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

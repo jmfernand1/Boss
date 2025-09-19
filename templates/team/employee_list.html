@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Empleados - BOSS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-users"></i> Lista de Empleados</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'team:employee_create' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Nuevo Empleado
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Buscar</label>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Nombre, ID o cargo..." value="{{ search }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Departamento</label>
+                    <select name="department" class="form-select">
+                        <option value="">Todos</option>
+                        {% for dept in departments %}
+                            <option value="{{ dept }}" {% if dept == selected_department %}selected{% endif %}>
+                                {{ dept }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Estado</label>
+                    <select name="status" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Activos</option>
+                        <option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>Inactivos</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
+                    <a href="{% url 'team:employee_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Empleados -->
+    <div class="card">
+        <div class="card-body">
+            {% if employees %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Cargo</th>
+                                <th>Departamento</th>
+                                <th>Fecha Ingreso</th>
+                                <th>Años en la Empresa</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for employee in employees %}
+                            <tr>
+                                <td>{{ employee.employee_id }}</td>
+                                <td>
+                                    <strong>{{ employee.full_name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ employee.user.email }}</small>
+                                </td>
+                                <td>{{ employee.position }}</td>
+                                <td>{{ employee.department }}</td>
+                                <td>{{ employee.hire_date|date:"d/m/Y" }}</td>
+                                <td>{{ employee.years_of_service }} año{{ employee.years_of_service|pluralize }}</td>
+                                <td>
+                                    {% if employee.is_active %}
+                                        <span class="badge bg-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'team:employee_detail' employee.pk %}" 
+                                           class="btn btn-sm btn-outline-primary" title="Ver detalle">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'team:employee_edit' employee.pk %}" 
+                                           class="btn btn-sm btn-outline-secondary" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'team:employee_delete' employee.pk %}" 
+                                           class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No se encontraron empleados con los filtros aplicados.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> 
+                Mostrando <strong>{{ employees|length }}</strong> empleado{{ employees|length|pluralize }}
+                {% if search or selected_department or selected_status %}
+                    (con filtros aplicados)
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Ordenar tabla
+    $('th').css('cursor', 'pointer');
+});
+</script>
+{% endblock %}

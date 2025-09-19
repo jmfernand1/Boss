@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
+from django.urls import reverse
 from datetime import date, timedelta
 from .models import Employee, Absence, Vacation, Birthday, AbsenceType
 
@@ -157,12 +158,26 @@ def vacation_summary(request):
     total_taken = sum(v.days_taken for v in vacation_records)
     total_pending = sum(v.days_pending for v in vacation_records)
     
+    # Calcular porcentaje de utilización
+    utilization_percentage = 0
+    if total_entitled > 0:
+        utilization_percentage = round((total_taken / total_entitled) * 100)
+    
+    # Top 5 empleados con más días pendientes
+    top_pending_employees = sorted(
+        [v for v in vacation_records if v.days_pending > 0],
+        key=lambda x: x.days_pending,
+        reverse=True
+    )[:5]
+    
     context = {
         'vacation_records': vacation_records,
         'current_year': current_year,
         'total_entitled': total_entitled,
         'total_taken': total_taken,
         'total_pending': total_pending,
+        'utilization_percentage': utilization_percentage,
+        'top_pending_employees': top_pending_employees,
     }
     
     return render(request, 'team/vacation_summary.html', context)
@@ -191,18 +206,345 @@ def birthday_calendar(request):
             'age': age
         })
     
-    # Generar lista de meses para navegación
+    # Generar lista de meses para navegación (en español)
     months = [
-        (i, date(2000, i, 1).strftime('%B'))
-        for i in range(1, 13)
+        (1, 'Enero'), (2, 'Febrero'), (3, 'Marzo'), (4, 'Abril'),
+        (5, 'Mayo'), (6, 'Junio'), (7, 'Julio'), (8, 'Agosto'),
+        (9, 'Septiembre'), (10, 'Octubre'), (11, 'Noviembre'), (12, 'Diciembre')
     ]
+    
+    # Generar lista de años (5 años antes y después del año actual)
+    current_year = date.today().year
+    years = list(range(current_year - 5, current_year + 6))
+    
+    # Obtener nombre del mes seleccionado
+    month_names = dict(months)
+    selected_month_name = month_names.get(month, '')
+    
+    # Calcular navegación anterior y siguiente
+    prev_month = month - 1 if month > 1 else 12
+    prev_year = year if month > 1 else year - 1
+    next_month = month + 1 if month < 12 else 1
+    next_year = year if month < 12 else year + 1
     
     context = {
         'birthdays': birthdays,
         'selected_month': month,
         'selected_year': year,
         'months': months,
-        'month_name': date(year, month, 1).strftime('%B'),
+        'years': years,
+        'month_name': selected_month_name,
+        'prev_month': prev_month,
+        'prev_year': prev_year,
+        'prev_month_name': month_names.get(prev_month, ''),
+        'next_month': next_month,
+        'next_year': next_year,
+        'next_month_name': month_names.get(next_month, ''),
     }
     
     return render(request, 'team/birthday_calendar.html', context)
+
+
+# ============================================================================
+# VISTAS CRUD
+# ============================================================================
+
+@login_required
+def employee_create(request):
+    """Crear nuevo empleado"""
+    from .forms import EmployeeForm
+    
+    if request.method == 'POST':
+        form = EmployeeForm(request.POST)
+        if form.is_valid():
+            employee = form.save()
+            messages.success(request, f'Empleado {employee.full_name} creado exitosamente.')
+            return redirect('team:employee_detail', pk=employee.pk)
+    else:
+        form = EmployeeForm()
+    
+    return render(request, 'team/employee_form.html', {
+        'form': form,
+        'title': 'Nuevo Empleado',
+        'action': 'create',
+        'back_url': reverse('team:employee_list')
+    })
+
+
+@login_required
+def employee_edit(request, pk):
+    """Editar empleado existente"""
+    from .forms import EmployeeForm
+    
+    employee = get_object_or_404(Employee, pk=pk)
+    
+    if request.method == 'POST':
+        form = EmployeeForm(request.POST, instance=employee)
+        if form.is_valid():
+            employee = form.save()
+            messages.success(request, f'Empleado {employee.full_name} actualizado exitosamente.')
+            return redirect('team:employee_detail', pk=employee.pk)
+    else:
+        form = EmployeeForm(instance=employee)
+    
+    return render(request, 'team/employee_form.html', {
+        'form': form,
+        'employee': employee,
+        'title': f'Editar - {employee.full_name}',
+        'action': 'edit',
+        'back_url': reverse('team:employee_detail', args=[employee.pk])
+    })
+
+
+@login_required
+def employee_delete(request, pk):
+    """Eliminar empleado"""
+    employee = get_object_or_404(Employee, pk=pk)
+    
+    if request.method == 'POST':
+        employee_name = employee.full_name
+        employee.delete()
+        messages.success(request, f'Empleado {employee_name} eliminado exitosamente.')
+        return redirect('team:employee_list')
+    
+    return render(request, 'team/employee_confirm_delete.html', {
+        'employee': employee
+    })
+
+
+@login_required
+def absence_create(request):
+    """Crear nueva ausencia"""
+    from .forms import AbsenceForm
+    
+    if request.method == 'POST':
+        form = AbsenceForm(request.POST)
+        if form.is_valid():
+            absence = form.save()
+            messages.success(request, f'Ausencia registrada para {absence.employee.full_name}.')
+            return redirect('team:absence_list')
+    else:
+        form = AbsenceForm()
+        # Pre-seleccionar empleado si viene en query params
+        employee_id = request.GET.get('employee')
+        if employee_id:
+            try:
+                employee = Employee.objects.get(pk=employee_id)
+                form.fields['employee'].initial = employee
+            except Employee.DoesNotExist:
+                pass
+    
+    return render(request, 'team/absence_form.html', {
+        'form': form,
+        'title': 'Nueva Ausencia',
+        'action': 'create',
+        'back_url': reverse('team:absence_list')
+    })
+
+
+@login_required
+def absence_edit(request, pk):
+    """Editar ausencia existente"""
+    from .forms import AbsenceForm
+    
+    absence = get_object_or_404(Absence, pk=pk)
+    
+    if request.method == 'POST':
+        form = AbsenceForm(request.POST, instance=absence)
+        if form.is_valid():
+            absence = form.save()
+            messages.success(request, f'Ausencia de {absence.employee.full_name} actualizada.')
+            return redirect('team:absence_list')
+    else:
+        form = AbsenceForm(instance=absence)
+    
+    return render(request, 'team/absence_form.html', {
+        'form': form,
+        'absence': absence,
+        'title': f'Editar Ausencia - {absence.employee.full_name}',
+        'action': 'edit'
+    })
+
+
+@login_required
+def absence_delete(request, pk):
+    """Eliminar ausencia"""
+    absence = get_object_or_404(Absence, pk=pk)
+    
+    if request.method == 'POST':
+        employee_name = absence.employee.full_name
+        absence_type = absence.absence_type.name
+        absence.delete()
+        messages.success(request, f'Ausencia ({absence_type}) de {employee_name} eliminada.')
+        return redirect('team:absence_list')
+    
+    return render(request, 'team/absence_confirm_delete.html', {
+        'absence': absence
+    })
+
+
+@login_required
+def vacation_create(request):
+    """Crear nuevo registro de vacaciones"""
+    from .forms import VacationForm
+    
+    if request.method == 'POST':
+        form = VacationForm(request.POST)
+        if form.is_valid():
+            vacation = form.save()
+            messages.success(request, f'Control de vacaciones creado para {vacation.employee.full_name}.')
+            return redirect('team:vacation_summary')
+    else:
+        form = VacationForm()
+        # Pre-seleccionar empleado si viene en query params
+        employee_id = request.GET.get('employee')
+        if employee_id:
+            try:
+                employee = Employee.objects.get(pk=employee_id)
+                form.fields['employee'].initial = employee
+            except Employee.DoesNotExist:
+                pass
+    
+    return render(request, 'team/vacation_form.html', {
+        'form': form,
+        'title': 'Nuevo Control de Vacaciones',
+        'action': 'create'
+    })
+
+
+@login_required
+def vacation_edit(request, pk):
+    """Editar registro de vacaciones"""
+    from .forms import VacationForm
+    
+    vacation = get_object_or_404(Vacation, pk=pk)
+    
+    if request.method == 'POST':
+        form = VacationForm(request.POST, instance=vacation)
+        if form.is_valid():
+            vacation = form.save()
+            messages.success(request, f'Control de vacaciones de {vacation.employee.full_name} actualizado.')
+            return redirect('team:vacation_summary')
+    else:
+        form = VacationForm(instance=vacation)
+    
+    return render(request, 'team/vacation_form.html', {
+        'form': form,
+        'vacation': vacation,
+        'title': f'Editar Vacaciones - {vacation.employee.full_name} ({vacation.year})',
+        'action': 'edit'
+    })
+
+
+@login_required
+def vacation_delete(request, pk):
+    """Eliminar registro de vacaciones"""
+    vacation = get_object_or_404(Vacation, pk=pk)
+    
+    if request.method == 'POST':
+        employee_name = vacation.employee.full_name
+        year = vacation.year
+        vacation.delete()
+        messages.success(request, f'Control de vacaciones de {employee_name} ({year}) eliminado.')
+        return redirect('team:vacation_summary')
+    
+    return render(request, 'team/vacation_confirm_delete.html', {
+        'vacation': vacation
+    })
+
+
+@login_required
+def absence_type_list(request):
+    """Lista de tipos de ausencia"""
+    absence_types = AbsenceType.objects.all().order_by('name')
+    
+    context = {
+        'absence_types': absence_types,
+    }
+    
+    return render(request, 'team/absence_type_list.html', context)
+
+
+@login_required
+def absence_type_create(request):
+    """Crear nuevo tipo de ausencia"""
+    from .forms import AbsenceTypeForm
+    
+    if request.method == 'POST':
+        form = AbsenceTypeForm(request.POST)
+        if form.is_valid():
+            absence_type = form.save()
+            messages.success(request, f'Tipo de ausencia "{absence_type.name}" creado exitosamente.')
+            return redirect('team:absence_type_list')
+    else:
+        form = AbsenceTypeForm()
+    
+    return render(request, 'team/absence_type_form.html', {
+        'form': form,
+        'title': 'Nuevo Tipo de Ausencia',
+        'action': 'create'
+    })
+
+
+@login_required
+def absence_type_edit(request, pk):
+    """Editar tipo de ausencia"""
+    from .forms import AbsenceTypeForm
+    
+    absence_type = get_object_or_404(AbsenceType, pk=pk)
+    
+    if request.method == 'POST':
+        form = AbsenceTypeForm(request.POST, instance=absence_type)
+        if form.is_valid():
+            absence_type = form.save()
+            messages.success(request, f'Tipo de ausencia "{absence_type.name}" actualizado.')
+            return redirect('team:absence_type_list')
+    else:
+        form = AbsenceTypeForm(instance=absence_type)
+    
+    return render(request, 'team/absence_type_form.html', {
+        'form': form,
+        'absence_type': absence_type,
+        'title': f'Editar Tipo - {absence_type.name}',
+        'action': 'edit'
+    })
+
+
+@login_required
+def absence_type_delete(request, pk):
+    """Eliminar tipo de ausencia"""
+    absence_type = get_object_or_404(AbsenceType, pk=pk)
+    
+    # Verificar si el tipo está siendo usado
+    if absence_type.absence_set.exists():
+        messages.error(request, f'No se puede eliminar "{absence_type.name}" porque está siendo usado en ausencias existentes.')
+        return redirect('team:absence_type_list')
+    
+    if request.method == 'POST':
+        type_name = absence_type.name
+        absence_type.delete()
+        messages.success(request, f'Tipo de ausencia "{type_name}" eliminado exitosamente.')
+        return redirect('team:absence_type_list')
+    
+    return render(request, 'team/absence_type_confirm_delete.html', {
+        'absence_type': absence_type
+    })
+
+
+@login_required
+def quick_absence(request):
+    """Vista para registro rápido de ausencias (AJAX)"""
+    from .forms import QuickAbsenceForm
+    
+    if request.method == 'POST':
+        form = QuickAbsenceForm(request.POST)
+        if form.is_valid():
+            absence = form.save()
+            messages.success(request, f'Ausencia registrada para {absence.employee.full_name}.')
+            return redirect('team:team_dashboard')
+    else:
+        form = QuickAbsenceForm()
+    
+    return render(request, 'team/quick_absence_form.html', {
+        'form': form
+    })

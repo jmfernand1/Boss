@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ employee.full_name }} - Detalle de Empleado{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>
+                <i class="fas fa-user-circle"></i> {{ employee.full_name }}
+            </h1>
+            <p class="lead">{{ employee.position }} - {{ employee.department }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="btn-group" role="group">
+                <a href="{% url 'team:employee_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+                <a href="{% url 'team:employee_edit' employee.pk %}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                <a href="{% url 'team:employee_delete' employee.pk %}" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información Personal -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información Personal</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th width="40%">ID Empleado:</th>
+                            <td>{{ employee.employee_id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>{{ employee.user.email }}</td>
+                        </tr>
+                        <tr>
+                            <th>Teléfono:</th>
+                            <td>{{ employee.phone|default:"No registrado" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Móvil:</th>
+                            <td>{{ employee.mobile|default:"No registrado" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Fecha de Nacimiento:</th>
+                            <td>
+                                {{ employee.birth_date|date:"d/m/Y" }}
+                                <span class="text-muted">({{ employee.age }} años)</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Estado:</th>
+                            <td>
+                                {% if employee.is_active %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información Laboral -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-briefcase"></i> Información Laboral</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th width="40%">Cargo:</th>
+                            <td>{{ employee.position }}</td>
+                        </tr>
+                        <tr>
+                            <th>Departamento:</th>
+                            <td>{{ employee.department }}</td>
+                        </tr>
+                        <tr>
+                            <th>Fecha de Ingreso:</th>
+                            <td>{{ employee.hire_date|date:"d/m/Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Antigüedad:</th>
+                            <td>{{ employee.years_of_service }} año{{ employee.years_of_service|pluralize }}</td>
+                        </tr>
+                    </table>
+                    
+                    {% if employee.emergency_contact %}
+                    <hr>
+                    <h6><i class="fas fa-phone-alt"></i> Contacto de Emergencia</h6>
+                    <p class="mb-1">{{ employee.emergency_contact }}</p>
+                    <p class="mb-0">Tel: {{ employee.emergency_phone|default:"No registrado" }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs para información adicional -->
+    <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#ausencias">
+                        <i class="fas fa-calendar-times"></i> Historial de Ausencias
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#vacaciones">
+                        <i class="fas fa-umbrella-beach"></i> Control de Vacaciones
+                    </a>
+                </li>
+                {% if employee.notes %}
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#notas">
+                        <i class="fas fa-sticky-note"></i> Notas
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content">
+                <!-- Tab Ausencias -->
+                <div class="tab-pane fade show active" id="ausencias">
+                    {% if absences %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Fecha Inicio</th>
+                                        <th>Fecha Fin</th>
+                                        <th>Días</th>
+                                        <th>Motivo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for absence in absences %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge" style="background-color: {{ absence.absence_type.color }}">
+                                                {{ absence.absence_type.name }}
+                                            </span>
+                                        </td>
+                                        <td>{{ absence.start_date|date:"d/m/Y" }}</td>
+                                        <td>{{ absence.end_date|date:"d/m/Y" }}</td>
+                                        <td>{{ absence.duration_days }}</td>
+                                        <td>{{ absence.reason|default:"-" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'team:absence_list' %}?employee={{ employee.pk }}" 
+                               class="btn btn-sm btn-outline-primary">
+                                Ver todas las ausencias
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3">
+                            No hay ausencias registradas para este empleado.
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Tab Vacaciones -->
+                <div class="tab-pane fade" id="vacaciones">
+                    {% if vacation_records %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Año</th>
+                                        <th>Días Correspondientes</th>
+                                        <th>Días Tomados</th>
+                                        <th>Días Pendientes</th>
+                                        <th>Notas</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for vacation in vacation_records %}
+                                    <tr {% if vacation.days_pending > 10 %}class="table-warning"{% endif %}>
+                                        <td><strong>{{ vacation.year }}</strong></td>
+                                        <td>{{ vacation.days_entitled }}</td>
+                                        <td>{{ vacation.days_taken }}</td>
+                                        <td>
+                                            <strong class="{% if vacation.days_pending > 0 %}text-success{% else %}text-muted{% endif %}">
+                                                {{ vacation.days_pending }}
+                                            </strong>
+                                        </td>
+                                        <td>{{ vacation.notes|default:"-" }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3">
+                            No hay registros de vacaciones para este empleado.
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Tab Notas -->
+                {% if employee.notes %}
+                <div class="tab-pane fade" id="notas">
+                    <div class="p-3">
+                        {{ employee.notes|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones Rápidas -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <h5>Acciones Rápidas</h5>
+            <div class="btn-group" role="group">
+                <a href="{% url 'team:absence_create' %}?employee={{ employee.pk }}" 
+                   class="btn btn-outline-warning">
+                    <i class="fas fa-calendar-plus"></i> Registrar Ausencia
+                </a>
+                <a href="{% url 'team:vacation_create' %}?employee={{ employee.pk }}" 
+                   class="btn btn-outline-success">
+                    <i class="fas fa-umbrella-beach"></i> Actualizar Vacaciones
+                </a>
+                <a href="{% url 'initiatives:initiative_list' %}?owner={{ employee.pk }}" 
+                   class="btn btn-outline-primary">
+                    <i class="fas fa-tasks"></i> Ver Iniciativas
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Activar tabs
+    var triggerTabList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tab"]'));
+    triggerTabList.forEach(function (triggerEl) {
+        new bootstrap.Tab(triggerEl);
+    });
+});
+</script>
+{% endblock %}

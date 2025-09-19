@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+
+{% block title %}Calendario de Cumpleaños - BOSS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-birthday-cake"></i> Calendario de Cumpleaños</h1>
+            <p class="lead">{{ month_name }} {{ selected_year }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'team:birthday_calendar' %}" class="btn btn-outline-primary">
+                <i class="fas fa-calendar-day"></i> Mes Actual
+            </a>
+        </div>
+    </div>
+
+    <!-- Selector de Mes y Año -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label">Mes</label>
+                    <select name="month" class="form-select">
+                        {% for month_num, month_name_option in months %}
+                            <option value="{{ month_num }}" {% if month_num == selected_month %}selected{% endif %}>
+                                {{ month_name_option }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Año</label>
+                    <select name="year" class="form-select">
+                        {% for year in years %}
+                            <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>
+                                {{ year }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Ver
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Navegación Rápida -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="btn-group w-100" role="group">
+                <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-chevron-left"></i> {{ prev_month_name }} {{ prev_year }}
+                </a>
+                
+                <button class="btn btn-primary" disabled>
+                    {{ month_name }} {{ selected_year }}
+                </button>
+                
+                <a href="?month={{ next_month }}&year={{ next_year }}" class="btn btn-outline-secondary">
+                    {{ next_month_name }} {{ next_year }} <i class="fas fa-chevron-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Cumpleaños del Mes -->
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-gift"></i> Cumpleaños en {{ month_name }}
+                {% if birthdays %}
+                    <span class="badge bg-light text-dark float-end">{{ birthdays|length }}</span>
+                {% endif %}
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if birthdays %}
+                <div class="row">
+                    {% for birthday in birthdays %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100 {% if birthday.date|date:"d" == "now"|date:"d" and birthday.date|date:"m" == "now"|date:"m" %}border-warning border-2{% endif %}">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <div class="text-center">
+                                            <h2 class="mb-0 text-primary">{{ birthday.date|date:"d" }}</h2>
+                                            <small class="text-muted">{{ birthday.date|date:"l"|slice:":3" }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h5 class="mb-1">
+                                            <a href="{% url 'team:employee_detail' birthday.employee.pk %}">
+                                                {{ birthday.employee.full_name }}
+                                            </a>
+                                        </h5>
+                                        <p class="mb-0 text-muted">{{ birthday.employee.position }}</p>
+                                        <p class="mb-0">
+                                            <small>{{ birthday.employee.department }}</small>
+                                        </p>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="display-6 text-warning">
+                                            🎂
+                                        </div>
+                                        <small class="text-muted">{{ birthday.age }} años</small>
+                                    </div>
+                                </div>
+                                {% if birthday.date|date:"d" == "now"|date:"d" and birthday.date|date:"m" == "now"|date:"m" %}
+                                <div class="mt-2">
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-star"></i> ¡Hoy es su cumpleaños!
+                                    </span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No hay cumpleaños registrados en {{ month_name }} {{ selected_year }}.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Resumen Anual -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Vista Anual {{ selected_year }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for month_num, month_name_item in months %}
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <a href="?month={{ month_num }}&year={{ selected_year }}" 
+                       class="text-decoration-none">
+                        <div class="card text-center {% if month_num == selected_month %}bg-primary text-white{% else %}bg-light{% endif %}">
+                            <div class="card-body py-2">
+                                <h6 class="mb-1">{{ month_name_item }}</h6>
+                                <p class="mb-0">
+                                    {% with month_birthdays=birthdays|length %}
+                                        {% if month_num == selected_month and month_birthdays > 0 %}
+                                            <span class="badge {% if month_num == selected_month %}bg-light text-dark{% else %}bg-primary{% endif %}">
+                                                {{ month_birthdays }}
+                                            </span>
+                                        {% else %}
+                                            <small class="{% if month_num == selected_month %}text-white-50{% else %}text-muted{% endif %}">
+                                                -
+                                            </small>
+                                        {% endif %}
+                                    {% endwith %}
+                                </p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Próximos Cumpleaños (Todos los meses) -->
+    <div class="card mt-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Próximos Cumpleaños (30 días)</h5>
+        </div>
+        <div class="card-body">
+            <div id="upcoming-birthdays" class="list-group">
+                <p class="text-muted text-center">Cargando...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <button class="btn btn-outline-secondary" onclick="window.print()">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+                <button class="btn btn-outline-primary" onclick="downloadCalendar()">
+                    <i class="fas fa-download"></i> Descargar Calendario
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Cargar próximos cumpleaños
+    loadUpcomingBirthdays();
+});
+
+function loadUpcomingBirthdays() {
+    // Simulación - en producción esto sería una llamada AJAX
+    const upcomingHtml = `
+        <div class="list-group-item">
+            <small class="text-muted">Esta función requiere implementación adicional para mostrar cumpleaños de los próximos 30 días</small>
+        </div>
+    `;
+    $('#upcoming-birthdays').html(upcomingHtml);
+}
+
+function downloadCalendar() {
+    alert('Función de descarga de calendario en desarrollo');
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card:hover {
+    transform: translateY(-2px);
+}
+
+@media print {
+    .btn-group, .form-select, .card-header {
+        display: none !important;
+    }
+    
+    .card {
+        break-inside: avoid;
+        margin-bottom: 1rem !important;
+    }
+}
+
+/* Estilo especial para cumpleaños de hoy */
+.border-warning.border-2 {
+    border-width: 3px !important;
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+}
+</style>
+{% endblock %}

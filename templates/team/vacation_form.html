@@ -1,0 +1,144 @@
+{% extends 'team/form_base.html' %}
+
+{% block back_text %}Volver a Vacaciones{% endblock %}
+
+{% block form_content %}
+<div class="row">
+    <div class="col-md-6">
+        <h5 class="border-bottom pb-2 mb-3">
+            <i class="fas fa-user"></i> Empleado y Periodo
+        </h5>
+        
+        <div class="mb-3">
+            <label for="{{ form.employee.id_for_label }}" class="form-label">
+                {{ form.employee.label }} <span class="text-danger">*</span>
+            </label>
+            {{ form.employee }}
+            {% if form.employee.errors %}
+                <div class="invalid-feedback d-block">{{ form.employee.errors|join:", " }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label for="{{ form.year.id_for_label }}" class="form-label">
+                {{ form.year.label }} <span class="text-danger">*</span>
+            </label>
+            {{ form.year }}
+            <div class="form-text">Año para el control de vacaciones</div>
+            {% if form.year.errors %}
+                <div class="invalid-feedback d-block">{{ form.year.errors|join:", " }}</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <h5 class="border-bottom pb-2 mb-3">
+            <i class="fas fa-umbrella-beach"></i> Control de Días
+        </h5>
+        
+        <div class="mb-3">
+            <label for="{{ form.days_entitled.id_for_label }}" class="form-label">
+                {{ form.days_entitled.label }} <span class="text-danger">*</span>
+            </label>
+            {{ form.days_entitled }}
+            <div class="form-text">Días de vacaciones que le corresponden en el año</div>
+            {% if form.days_entitled.errors %}
+                <div class="invalid-feedback d-block">{{ form.days_entitled.errors|join:", " }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label for="{{ form.days_taken.id_for_label }}" class="form-label">
+                {{ form.days_taken.label }} <span class="text-danger">*</span>
+            </label>
+            {{ form.days_taken }}
+            <div class="form-text">Días de vacaciones ya tomados</div>
+            {% if form.days_taken.errors %}
+                <div class="invalid-feedback d-block">{{ form.days_taken.errors|join:", " }}</div>
+            {% endif %}
+        </div>
+        
+        <!-- Mostrar días pendientes calculados -->
+        <div class="alert alert-info pending-days-info" style="display: none;">
+            <strong>Días Pendientes:</strong> <span class="pending-days">0</span>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-3">
+            <i class="fas fa-sticky-note"></i> Notas Adicionales
+        </h5>
+        
+        <div class="mb-3">
+            <label for="{{ form.notes.id_for_label }}" class="form-label">
+                {{ form.notes.label }}
+            </label>
+            {{ form.notes }}
+            <div class="form-text">Observaciones o comentarios sobre las vacaciones</div>
+            {% if form.notes.errors %}
+                <div class="invalid-feedback d-block">{{ form.notes.errors|join:", " }}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if form.errors %}
+    {% for error in form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+    {% endfor %}
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Calcular días pendientes automáticamente
+    function calculatePendingDays() {
+        const entitled = parseInt($('#{{ form.days_entitled.id_for_label }}').val()) || 0;
+        const taken = parseInt($('#{{ form.days_taken.id_for_label }}').val()) || 0;
+        const pending = entitled - taken;
+        
+        if (entitled > 0 || taken > 0) {
+            $('.pending-days').text(pending);
+            $('.pending-days-info').show();
+            
+            // Cambiar color basado en el resultado
+            const alertBox = $('.pending-days-info');
+            alertBox.removeClass('alert-info alert-warning alert-danger');
+            
+            if (pending < 0) {
+                alertBox.addClass('alert-danger');
+            } else if (pending > 10) {
+                alertBox.addClass('alert-warning');
+            } else {
+                alertBox.addClass('alert-info');
+            }
+        } else {
+            $('.pending-days-info').hide();
+        }
+        
+        // Validar que los días tomados no excedan los correspondientes
+        if (taken > entitled && entitled > 0) {
+            $('#{{ form.days_taken.id_for_label }}').addClass('is-invalid');
+            if ($('.days-taken-error').length === 0) {
+                $('#{{ form.days_taken.id_for_label }}').after(
+                    '<div class="invalid-feedback d-block days-taken-error">Los días tomados no pueden ser mayores a los correspondientes.</div>'
+                );
+            }
+        } else {
+            $('#{{ form.days_taken.id_for_label }}').removeClass('is-invalid');
+            $('.days-taken-error').remove();
+        }
+    }
+    
+    $('#{{ form.days_entitled.id_for_label }}, #{{ form.days_taken.id_for_label }}').on('input change', calculatePendingDays);
+    
+    // Calcular inicial
+    calculatePendingDays();
+});
+</script>
+{% endblock %}

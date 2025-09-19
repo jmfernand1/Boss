@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+
+{% block title %}Control de Vacaciones - BOSS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-umbrella-beach"></i> Control de Vacaciones</h1>
+            <p class="lead">Año {{ current_year }}</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="d-flex gap-2">
+                <div class="btn-group" role="group">
+                    <a href="?year={{ current_year|add:"-1" }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-chevron-left"></i> {{ current_year|add:"-1" }}
+                    </a>
+                    <button class="btn btn-primary" disabled>{{ current_year }}</button>
+                    <a href="?year={{ current_year|add:"1" }}" class="btn btn-outline-secondary">
+                        {{ current_year|add:"1" }} <i class="fas fa-chevron-right"></i>
+                    </a>
+                </div>
+                <a href="{% url 'team:vacation_create' %}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Nuevo
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen General -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center border-primary">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ total_entitled }}</h3>
+                    <p class="mb-0">Días Totales</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-success">
+                <div class="card-body">
+                    <h3 class="text-success">{{ total_taken }}</h3>
+                    <p class="mb-0">Días Tomados</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-warning">
+                <div class="card-body">
+                    <h3 class="text-warning">{{ total_pending }}</h3>
+                    <p class="mb-0">Días Pendientes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center border-info">
+                <div class="card-body">
+                    <h3 class="text-info">
+                        {{ utilization_percentage }}%
+                    </h3>
+                    <p class="mb-0">Utilización</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Vacaciones por Empleado -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Detalle por Empleado</h5>
+        </div>
+        <div class="card-body">
+            {% if vacation_records %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Empleado</th>
+                                <th>Departamento</th>
+                                <th class="text-center">Días Correspondientes</th>
+                                <th class="text-center">Días Tomados</th>
+                                <th class="text-center">Días Pendientes</th>
+                                <th class="text-center">% Utilizado</th>
+                                <th>Notas</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vacation in vacation_records %}
+                            <tr {% if vacation.days_pending > 10 %}class="table-warning"{% elif vacation.days_pending == 0 %}class="table-light"{% endif %}>
+                                <td>
+                                    <a href="{% url 'team:employee_detail' vacation.employee.pk %}">
+                                        {{ vacation.employee.full_name }}
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">{{ vacation.employee.position }}</small>
+                                </td>
+                                <td>{{ vacation.employee.department }}</td>
+                                <td class="text-center">{{ vacation.days_entitled }}</td>
+                                <td class="text-center">{{ vacation.days_taken }}</td>
+                                <td class="text-center">
+                                    <strong class="{% if vacation.days_pending > 0 %}text-warning{% else %}text-muted{% endif %}">
+                                        {{ vacation.days_pending }}
+                                    </strong>
+                                </td>
+                                <td class="text-center">
+                                    <div class="progress" style="height: 20px;">
+                                        {% if vacation.days_entitled > 0 %}
+                                            {% widthratio vacation.days_taken vacation.days_entitled 100 as percentage %}
+                                            <div class="progress-bar {% if percentage > 80 %}bg-success{% elif percentage > 50 %}bg-info{% else %}bg-warning{% endif %}" 
+                                                 style="width: {{ percentage }}%">
+                                                {{ percentage }}%
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if vacation.notes %}
+                                        <span title="{{ vacation.notes }}" data-bs-toggle="tooltip">
+                                            {{ vacation.notes|truncatewords:3 }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'team:vacation_edit' vacation.pk %}" 
+                                           class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'team:absence_list' %}?employee={{ vacation.employee.pk }}&type=1" 
+                                           class="btn btn-sm btn-outline-info" title="Ver ausencias">
+                                            <i class="fas fa-calendar"></i>
+                                        </a>
+                                        <a href="{% url 'team:vacation_delete' vacation.pk %}" 
+                                           class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th colspan="2">TOTALES</th>
+                                <th class="text-center">{{ total_entitled }}</th>
+                                <th class="text-center">{{ total_taken }}</th>
+                                <th class="text-center">{{ total_pending }}</th>
+                                <th class="text-center">
+                                    {% if total_entitled > 0 %}
+                                        {% widthratio total_taken total_entitled 100 as total_percentage %}
+                                        {{ total_percentage }}%
+                                    {% else %}
+                                        0%
+                                    {% endif %}
+                                </th>
+                                <th colspan="2"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Alertas -->
+                {% if total_pending > 50 %}
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Atención:</strong> Hay {{ total_pending }} días de vacaciones pendientes por tomar en el equipo.
+                    Se recomienda planificar las vacaciones para evitar acumulación.
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-umbrella-beach fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No hay registros de vacaciones para el año {{ current_year }}.</p>
+                    <a href="{% url 'team:vacation_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear Registros
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Gráfico de Distribución -->
+    {% if vacation_records %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Distribución de Vacaciones</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Por Departamento</h6>
+                    {% regroup vacation_records by employee.department as dept_groups %}
+                    {% for dept in dept_groups %}
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>{{ dept.grouper }}</span>
+                                <span class="text-muted">
+                                    {% for v in dept.list %}{{ v.days_pending }}{% if not forloop.last %}+{% endif %}{% endfor %} días pendientes
+                                </span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="col-md-6">
+                    <h6>Empleados con más días pendientes</h6>
+                    {% for vacation in top_pending_employees %}
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span>{{ vacation.employee.full_name }}</span>
+                                <span class="badge bg-warning">{{ vacation.days_pending }} días</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    {% if not top_pending_employees %}
+                        <p class="text-muted">No hay empleados con días pendientes</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Acciones -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <a href="{% url 'team:vacation_create' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-plus"></i> Nuevo Registro
+                </a>
+                <button class="btn btn-outline-secondary" onclick="window.print()">
+                    <i class="fas fa-print"></i> Imprimir Reporte
+                </button>
+                <button class="btn btn-outline-success" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel"></i> Exportar Excel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Activar tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+function exportToExcel() {
+    // Implementación simplificada
+    alert('Función de exportación en desarrollo');
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+    .btn-group, .alert {
+        display: none !important;
+    }
+}
+</style>
+{% endblock %}

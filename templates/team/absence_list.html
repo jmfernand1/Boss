@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Ausencias - BOSS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-calendar-times"></i> Lista de Ausencias</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="btn-group" role="group">
+                <a href="{% url 'team:absence_create' %}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Nueva Ausencia
+                </a>
+                <a href="{% url 'team:quick_absence' %}" class="btn btn-outline-success">
+                    <i class="fas fa-plus-circle"></i> Registro Rápido
+                </a>
+                <a href="{% url 'team:absence_type_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-tags"></i> Tipos
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Empleado</label>
+                    <select name="employee" class="form-select">
+                        <option value="">Todos</option>
+                        {% for emp in employees %}
+                            <option value="{{ emp.pk }}" {% if emp.pk|stringformat:"s" == selected_employee %}selected{% endif %}>
+                                {{ emp.full_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Tipo de Ausencia</label>
+                    <select name="type" class="form-select">
+                        <option value="">Todos</option>
+                        {% for type in absence_types %}
+                            <option value="{{ type.pk }}" {% if type.pk|stringformat:"s" == selected_type %}selected{% endif %}>
+                                {{ type.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Desde</label>
+                    <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Hasta</label>
+                    <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
+                    <a href="{% url 'team:absence_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Calendario Visual (Vista rápida del mes actual) -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Vista del Mes Actual</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <h6><i class="fas fa-user-times text-warning"></i> Ausencias Actuales</h6>
+                    <p class="display-6 text-warning">
+                        {{ absences|length|default:"0" }}
+                    </p>
+                </div>
+                <div class="col-md-8">
+                    <h6>Leyenda de Tipos</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for type in absence_types %}
+                        <span class="badge" style="background-color: {{ type.color }}">
+                            {{ type.name }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Ausencias -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Registro de Ausencias</h5>
+        </div>
+        <div class="card-body">
+            {% if absences %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Empleado</th>
+                                <th>Tipo</th>
+                                <th>Fecha Inicio</th>
+                                <th>Fecha Fin</th>
+                                <th>Días</th>
+                                <th>Motivo</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for absence in absences %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'team:employee_detail' absence.employee.pk %}">
+                                        {{ absence.employee.full_name }}
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">{{ absence.employee.position }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge" style="background-color: {{ absence.absence_type.color }}">
+                                        {{ absence.absence_type.name }}
+                                    </span>
+                                </td>
+                                <td>{{ absence.start_date|date:"d/m/Y" }}</td>
+                                <td>{{ absence.end_date|date:"d/m/Y" }}</td>
+                                <td>
+                                    <strong>{{ absence.duration_days }}</strong>
+                                </td>
+                                <td>
+                                    {% if absence.reason %}
+                                        <span title="{{ absence.reason }}" data-bs-toggle="tooltip">
+                                            {{ absence.reason|truncatewords:5 }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% now "Y-m-d" as today %}
+                                    {% if absence.start_date|date:"Y-m-d" > today %}
+                                        <span class="badge bg-info">Futura</span>
+                                    {% elif absence.end_date|date:"Y-m-d" < today %}
+                                        <span class="badge bg-secondary">Pasada</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">En curso</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'team:absence_edit' absence.pk %}" 
+                                           class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'team:absence_delete' absence.pk %}" 
+                                           class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Resumen por tipo -->
+                <div class="mt-4">
+                    <h6>Resumen por Tipo de Ausencia</h6>
+                    <div class="row">
+                        {% regroup absences by absence_type as absences_by_type %}
+                        {% for type_group in absences_by_type %}
+                        <div class="col-md-3 mb-2">
+                            <div class="card text-center">
+                                <div class="card-body p-2">
+                                    <span class="badge mb-1" style="background-color: {{ type_group.grouper.color }}">
+                                        {{ type_group.grouper.name }}
+                                    </span>
+                                    <p class="mb-0 h5">{{ type_group.list|length }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No se encontraron ausencias con los filtros aplicados.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Exportar -->
+    <div class="row mt-3">
+        <div class="col-12 text-end">
+            <button class="btn btn-outline-secondary" onclick="window.print()">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+            <button class="btn btn-outline-success" onclick="exportToExcel()">
+                <i class="fas fa-file-excel"></i> Exportar Excel
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Activar tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+function exportToExcel() {
+    // Implementación simplificada de exportación
+    alert('Función de exportación en desarrollo');
+}
+</script>
+{% endblock %}

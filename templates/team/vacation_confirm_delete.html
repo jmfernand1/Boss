@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Control de Vacaciones - BOSS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-umbrella-beach text-danger"></i> Eliminar Control de Vacaciones</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'team:vacation_summary' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a Vacaciones
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                    </div>
+                    
+                    <p>¿Está seguro que desea eliminar el siguiente control de vacaciones?</p>
+                    
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <div class="row mb-2">
+                                <div class="col-sm-5"><strong>Empleado:</strong></div>
+                                <div class="col-sm-7">{{ vacation.employee.full_name }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-sm-5"><strong>Año:</strong></div>
+                                <div class="col-sm-7">{{ vacation.year }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-sm-5"><strong>Días Correspondientes:</strong></div>
+                                <div class="col-sm-7">{{ vacation.days_entitled }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-sm-5"><strong>Días Tomados:</strong></div>
+                                <div class="col-sm-7">{{ vacation.days_taken }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-5"><strong>Días Pendientes:</strong></div>
+                                <div class="col-sm-7">
+                                    <span class="badge {% if vacation.days_pending > 0 %}bg-warning{% else %}bg-secondary{% endif %}">
+                                        {{ vacation.days_pending }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'team:vacation_summary' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Sí, Eliminar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

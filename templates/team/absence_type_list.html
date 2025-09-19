@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Tipos de Ausencia - BOSS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-tags"></i> Tipos de Ausencia</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'team:absence_type_create' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Nuevo Tipo
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% if absence_types %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Código</th>
+                                <th class="text-center">Requiere Aprobación</th>
+                                <th class="text-center">Con Goce de Sueldo</th>
+                                <th class="text-center">Color</th>
+                                <th class="text-center">Ausencias Registradas</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for absence_type in absence_types %}
+                            <tr>
+                                <td>
+                                    <strong>{{ absence_type.name }}</strong>
+                                </td>
+                                <td>
+                                    <code>{{ absence_type.code }}</code>
+                                </td>
+                                <td class="text-center">
+                                    {% if absence_type.requires_approval %}
+                                        <i class="fas fa-check text-warning" title="Sí"></i>
+                                    {% else %}
+                                        <i class="fas fa-times text-muted" title="No"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if absence_type.paid %}
+                                        <i class="fas fa-check text-success" title="Sí"></i>
+                                    {% else %}
+                                        <i class="fas fa-times text-danger" title="No"></i>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge" style="background-color: {{ absence_type.color }}; color: white;">
+                                        {{ absence_type.color }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary">
+                                        {{ absence_type.absence_set.count }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'team:absence_type_edit' absence_type.pk %}" 
+                                           class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'team:absence_list' %}?type={{ absence_type.pk }}" 
+                                           class="btn btn-sm btn-outline-info" title="Ver ausencias">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if absence_type.absence_set.count == 0 %}
+                                        <a href="{% url 'team:absence_type_delete' absence_type.pk %}" 
+                                           class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                        {% else %}
+                                        <button class="btn btn-sm btn-outline-secondary" disabled title="No se puede eliminar porque está en uso">
+                                            <i class="fas fa-lock"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No hay tipos de ausencia configurados.</p>
+                    <a href="{% url 'team:absence_type_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear Primer Tipo
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Información adicional -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <h6><i class="fas fa-info-circle"></i> Información</h6>
+                <ul class="mb-0">
+                    <li><strong>Requiere Aprobación:</strong> Indica si las ausencias de este tipo necesitan aprobación previa.</li>
+                    <li><strong>Con Goce de Sueldo:</strong> Indica si la ausencia es remunerada o no.</li>
+                    <li><strong>Color:</strong> Se usa para identificar visualmente el tipo en listas y calendarios.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <a href="{% url 'team:absence_list' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-calendar-times"></i> Ver Ausencias
+                </a>
+                <a href="{% url 'team:dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Activar tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

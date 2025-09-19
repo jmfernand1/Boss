@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Empleado - BOSS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-user-times text-danger"></i> Eliminar Empleado</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'team:employee_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver a Empleados
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                    </div>
+                    
+                    <p>¿Está seguro que desea eliminar el siguiente empleado?</p>
+                    
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Nombre:</strong></div>
+                                <div class="col-sm-8">{{ employee.full_name }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>ID:</strong></div>
+                                <div class="col-sm-8">{{ employee.employee_id }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Cargo:</strong></div>
+                                <div class="col-sm-8">{{ employee.position }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Departamento:</strong></div>
+                                <div class="col-sm-8">{{ employee.department }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Información de registros relacionados -->
+                    {% if employee.absences.count > 0 or employee.vacations.count > 0 %}
+                    <div class="alert alert-info mt-3">
+                        <h6><i class="fas fa-info-circle"></i> Registros relacionados que serán eliminados:</h6>
+                        <ul class="mb-0">
+                            {% if employee.absences.count > 0 %}
+                                <li>{{ employee.absences.count }} ausencia{{ employee.absences.count|pluralize }}</li>
+                            {% endif %}
+                            {% if employee.vacations.count > 0 %}
+                                <li>{{ employee.vacations.count }} registro{{ employee.vacations.count|pluralize }} de vacaciones</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'team:employee_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Sí, Eliminar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

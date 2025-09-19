@@ -1,0 +1,132 @@
+{% extends 'team/form_base.html' %}
+
+{% block back_text %}Volver a Tipos{% endblock %}
+
+{% block form_content %}
+<div class="row">
+    <div class="col-md-6">
+        <h5 class="border-bottom pb-2 mb-3">
+            <i class="fas fa-tag"></i> Información Básica
+        </h5>
+        
+        <div class="mb-3">
+            <label for="{{ form.name.id_for_label }}" class="form-label">
+                {{ form.name.label }} <span class="text-danger">*</span>
+            </label>
+            {{ form.name }}
+            <div class="form-text">Nombre descriptivo del tipo de ausencia</div>
+            {% if form.name.errors %}
+                <div class="invalid-feedback d-block">{{ form.name.errors|join:", " }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label for="{{ form.code.id_for_label }}" class="form-label">
+                {{ form.code.label }} <span class="text-danger">*</span>
+            </label>
+            {{ form.code }}
+            <div class="form-text">Código único de 3-10 caracteres (ej: VAC, ENF, PER)</div>
+            {% if form.code.errors %}
+                <div class="invalid-feedback d-block">{{ form.code.errors|join:", " }}</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <h5 class="border-bottom pb-2 mb-3">
+            <i class="fas fa-cog"></i> Configuración
+        </h5>
+        
+        <div class="mb-3 form-check">
+            {{ form.requires_approval }}
+            <label class="form-check-label" for="{{ form.requires_approval.id_for_label }}">
+                {{ form.requires_approval.label }}
+            </label>
+            <div class="form-text">¿Las ausencias de este tipo requieren aprobación previa?</div>
+            {% if form.requires_approval.errors %}
+                <div class="invalid-feedback d-block">{{ form.requires_approval.errors|join:", " }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3 form-check">
+            {{ form.paid }}
+            <label class="form-check-label" for="{{ form.paid.id_for_label }}">
+                {{ form.paid.label }}
+            </label>
+            <div class="form-text">¿Las ausencias de este tipo son remuneradas?</div>
+            {% if form.paid.errors %}
+                <div class="invalid-feedback d-block">{{ form.paid.errors|join:", " }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label for="{{ form.color.id_for_label }}" class="form-label">
+                {{ form.color.label }} <span class="text-danger">*</span>
+            </label>
+            <div class="input-group">
+                {{ form.color }}
+                <span class="input-group-text color-preview" style="background-color: {{ form.color.value|default:'#3498db' }}; width: 50px;"></span>
+            </div>
+            <div class="form-text">Color para identificar visualmente este tipo</div>
+            {% if form.color.errors %}
+                <div class="invalid-feedback d-block">{{ form.color.errors|join:", " }}</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Vista previa -->
+<div class="row mt-4">
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-3">
+            <i class="fas fa-eye"></i> Vista Previa
+        </h5>
+        
+        <div class="alert alert-light">
+            <p><strong>Así se verá en las listas:</strong></p>
+            <span class="badge preview-badge" style="background-color: {{ form.color.value|default:'#3498db' }}">
+                <span class="preview-name">{{ form.name.value|default:'Nombre del Tipo' }}</span>
+            </span>
+            <small class="text-muted ms-2">
+                Código: <code class="preview-code">{{ form.code.value|default:'CODIGO' }}</code>
+            </small>
+        </div>
+    </div>
+</div>
+
+{% if form.errors %}
+    {% for error in form.non_field_errors %}
+        <div class="alert alert-danger">
+            {{ error }}
+        </div>
+    {% endfor %}
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Actualizar vista previa en tiempo real
+    function updatePreview() {
+        const name = $('#{{ form.name.id_for_label }}').val() || 'Nombre del Tipo';
+        const code = $('#{{ form.code.id_for_label }}').val().toUpperCase() || 'CODIGO';
+        const color = $('#{{ form.color.id_for_label }}').val() || '#3498db';
+        
+        $('.preview-name').text(name);
+        $('.preview-code').text(code);
+        $('.preview-badge, .color-preview').css('background-color', color);
+    }
+    
+    // Eventos para actualización en tiempo real
+    $('#{{ form.name.id_for_label }}, #{{ form.code.id_for_label }}, #{{ form.color.id_for_label }}').on('input change', updatePreview);
+    
+    // Convertir código a mayúsculas automáticamente
+    $('#{{ form.code.id_for_label }}').on('input', function() {
+        this.value = this.value.toUpperCase();
+    });
+    
+    // Actualización inicial
+    updatePreview();
+});
+</script>
+{% endblock %}
