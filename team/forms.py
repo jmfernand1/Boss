@@ -53,7 +53,7 @@ class EmployeeForm(forms.ModelForm):
         instance = kwargs.get('instance')
         super().__init__(*args, **kwargs)
         
-        if instance and instance.user:
+        if instance and instance.pk and hasattr(instance, 'user') and instance.user:
             self.fields['first_name'].initial = instance.user.first_name
             self.fields['last_name'].initial = instance.user.last_name
             self.fields['email'].initial = instance.user.email
@@ -65,7 +65,7 @@ class EmployeeForm(forms.ModelForm):
         
         # Verificar que el username no esté en uso por otro usuario
         user_query = User.objects.filter(username=username)
-        if instance and instance.user:
+        if instance and instance.pk and hasattr(instance, 'user') and instance.user:
             user_query = user_query.exclude(pk=instance.user.pk)
         
         if user_query.exists():
@@ -91,9 +91,15 @@ class EmployeeForm(forms.ModelForm):
         employee = super().save(commit=False)
         
         # Crear o actualizar el usuario
-        if employee.user:
-            user = employee.user
-        else:
+        try:
+            if employee.pk and hasattr(employee, 'user') and employee.user:
+                # Editando empleado existente
+                user = employee.user
+            else:
+                # Creando nuevo empleado
+                user = User()
+        except Employee.user.RelatedObjectDoesNotExist:
+            # En caso de que la relación no exista, crear nuevo usuario
             user = User()
         
         user.first_name = self.cleaned_data['first_name']
