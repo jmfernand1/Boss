@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Sprints{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-running"></i> Gestión de Sprints</h1>
+            <p class="lead">Administra los sprints para metodología ágil</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'initiatives:sprint_board' %}" class="btn btn-secondary me-2">
+                <i class="fas fa-columns"></i> Tablero
+            </a>
+            <a href="{% url 'initiatives:sprint_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Sprint
+            </a>
+        </div>
+    </div>
+
+    <!-- Lista de Sprints -->
+    {% if sprints %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Sprint</th>
+                        <th>Quarter</th>
+                        <th>Duración</th>
+                        <th>Objetivo</th>
+                        <th>Iniciativas</th>
+                        <th>Progreso</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sprint in sprints %}
+                    <tr class="{% if sprint.is_active %}table-success{% endif %}">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                {% if sprint.is_active %}
+                                    <i class="fas fa-play-circle text-success me-2"></i>
+                                {% endif %}
+                                <div>
+                                    <strong>{{ sprint.name }}</strong>
+                                    <br><small class="text-muted">Sprint #{{ sprint.sprint_number }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ sprint.quarter }}</td>
+                        <td>
+                            <div>{{ sprint.start_date|date:"d/m/Y" }} - {{ sprint.end_date|date:"d/m/Y" }}</div>
+                            <small class="text-muted">
+                                {{ sprint.start_date|timesince:sprint.end_date }}
+                            </small>
+                        </td>
+                        <td>
+                            {% if sprint.goal %}
+                                {{ sprint.goal|truncatewords:8 }}
+                            {% else %}
+                                <span class="text-muted fst-italic">Sin objetivo definido</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="text-center">
+                                <h6 class="mb-0">{{ sprint.total_initiatives|default:0 }}</h6>
+                                <small class="text-muted">Total</small>
+                            </div>
+                        </td>
+                        <td>
+                            {% if sprint.total_initiatives > 0 %}
+                                {% widthratio sprint.completed_initiatives sprint.total_initiatives 100 as completion_percentage %}
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-success" style="width: {{ completion_percentage }}%"></div>
+                                </div>
+                                <small class="text-muted">{{ completion_percentage }}% completado</small>
+                            {% else %}
+                                <span class="text-muted">Sin iniciativas</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if sprint.is_active %}
+                                <span class="badge bg-success">Activo</span>
+                            {% elif sprint.end_date < today %}
+                                <span class="badge bg-secondary">Finalizado</span>
+                            {% elif sprint.start_date > today %}
+                                <span class="badge bg-primary">Planificado</span>
+                            {% else %}
+                                <span class="badge bg-warning">En Curso</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'initiatives:sprint_board' %}?sprint={{ sprint.id }}" 
+                                   class="btn btn-sm btn-outline-primary" title="Ver tablero">
+                                    <i class="fas fa-columns"></i>
+                                </a>
+                                <a href="{% url 'initiatives:sprint_edit' sprint.pk %}" 
+                                   class="btn btn-sm btn-outline-secondary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'initiatives:sprint_delete' sprint.pk %}" 
+                                   class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-running fa-3x text-muted mb-3"></i>
+                <h5>No hay sprints configurados</h5>
+                <p class="text-muted">Crea el primer sprint para comenzar a trabajar con metodología ágil.</p>
+                <a href="{% url 'initiatives:sprint_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Crear Primer Sprint
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Estadísticas -->
+    {% if sprints %}
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ sprints.count }}</h3>
+                    <p class="mb-0">Total Sprints</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    {% with active_count=sprints|length %}
+                    <h3 class="text-success">1</h3>
+                    <p class="mb-0">Activo</p>
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-info">{{ sprints|length }}</h3>
+                    <p class="mb-0">En Este Año</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">0</h3>
+                    <p class="mb-0">Pendientes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

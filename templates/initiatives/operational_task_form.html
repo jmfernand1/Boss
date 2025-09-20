@@ -1,0 +1,198 @@
+{% extends 'initiatives/form_base.html' %}
+
+{% block title %}
+{% if action == 'create' %}
+    Nueva Tarea Operativa
+{% else %}
+    Editar {{ form.instance.initiative.title }}
+{% endif %}
+{% endblock %}
+
+{% block form_content %}
+<div class="row">
+    <!-- Selección de Iniciativa -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-cogs text-primary"></i> Configuración de Tarea Operativa
+        </h5>
+    </div>
+    
+    <div class="col-12 mb-3">
+        <label for="{{ form.initiative.id_for_label }}" class="form-label">
+            {{ form.initiative.label }}
+            {% if form.initiative.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.initiative }}
+        <div class="form-text">Solo se muestran iniciativas marcadas como operativas</div>
+        {% if form.initiative.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.initiative.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Configuración de Frecuencia -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-clock text-info"></i> Configuración de Frecuencia
+        </h5>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.frequency.id_for_label }}" class="form-label">
+            {{ form.frequency.label }}
+            {% if form.frequency.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.frequency }}
+        {% if form.frequency.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.frequency.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.duration_hours.id_for_label }}" class="form-label">
+            {{ form.duration_hours.label }}
+        </label>
+        <div class="input-group">
+            {{ form.duration_hours }}
+            <span class="input-group-text">horas</span>
+        </div>
+        <div class="form-text">Duración estimada de la tarea</div>
+        {% if form.duration_hours.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.duration_hours.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Configuración Específica por Frecuencia -->
+    <div class="col-md-4 mb-3" id="dayOfWeekField" style="display: none;">
+        <label for="{{ form.day_of_week.id_for_label }}" class="form-label">
+            {{ form.day_of_week.label }}
+        </label>
+        {{ form.day_of_week }}
+        <div class="form-text">Para tareas semanales o quincenales</div>
+        {% if form.day_of_week.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.day_of_week.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4 mb-3" id="dayOfMonthField" style="display: none;">
+        <label for="{{ form.day_of_month.id_for_label }}" class="form-label">
+            {{ form.day_of_month.label }}
+        </label>
+        {{ form.day_of_month }}
+        <div class="form-text">Para tareas mensuales, trimestrales o anuales</div>
+        {% if form.day_of_month.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.day_of_month.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <label for="{{ form.time_of_day.id_for_label }}" class="form-label">
+            {{ form.time_of_day.label }}
+        </label>
+        {{ form.time_of_day }}
+        <div class="form-text">Hora preferida para la ejecución</div>
+        {% if form.time_of_day.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.time_of_day.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Configuración de Ejecución -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-play text-success"></i> Control de Ejecución
+        </h5>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.last_execution.id_for_label }}" class="form-label">
+            {{ form.last_execution.label }}
+        </label>
+        {{ form.last_execution }}
+        <div class="form-text">Fecha y hora de la última ejecución</div>
+        {% if form.last_execution.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.last_execution.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.next_execution.id_for_label }}" class="form-label">
+            {{ form.next_execution.label }}
+        </label>
+        {{ form.next_execution }}
+        <div class="form-text">Se calcula automáticamente basado en la frecuencia</div>
+        {% if form.next_execution.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.next_execution.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Ayuda sobre frecuencias -->
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h6><i class="fas fa-info-circle"></i> Configuración por Frecuencia</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Diario/Semanal:</strong> Usar día de la semana<br>
+                    <strong>Quincenal:</strong> Cada 2 semanas en el día especificado<br>
+                    <strong>Mensual:</strong> Usar día del mes
+                </div>
+                <div class="col-md-6">
+                    <strong>Trimestral:</strong> Cada 3 meses en el día especificado<br>
+                    <strong>Anual:</strong> Una vez al año en la fecha especificada<br>
+                    <strong>Bajo Demanda:</strong> Sin programación automática
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const frequencySelect = document.getElementById('{{ form.frequency.id_for_label }}');
+    const dayOfWeekField = document.getElementById('dayOfWeekField');
+    const dayOfMonthField = document.getElementById('dayOfMonthField');
+    
+    function updateFieldsVisibility() {
+        const frequency = frequencySelect.value;
+        
+        // Ocultar todos los campos condicionales
+        dayOfWeekField.style.display = 'none';
+        dayOfMonthField.style.display = 'none';
+        
+        // Mostrar campos según la frecuencia
+        if (frequency === 'WEEKLY' || frequency === 'BIWEEKLY') {
+            dayOfWeekField.style.display = 'block';
+        } else if (frequency === 'MONTHLY' || frequency === 'QUARTERLY' || frequency === 'YEARLY') {
+            dayOfMonthField.style.display = 'block';
+        }
+    }
+    
+    // Evento para cambios en frecuencia
+    if (frequencySelect) {
+        frequencySelect.addEventListener('change', updateFieldsVisibility);
+        updateFieldsVisibility(); // Inicializar
+    }
+});
+</script>
+{% endblock %}

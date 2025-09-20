@@ -1,0 +1,413 @@
+{% extends 'initiatives/form_base.html' %}
+
+{% block title %}
+{% if action == 'create' %}
+    Nueva Iniciativa
+{% else %}
+    Editar {{ form.instance.title }}
+{% endif %}
+{% endblock %}
+
+{% block form_content %}
+<div class="row">
+    <!-- Información Básica -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-info-circle text-primary"></i> Información Básica
+        </h5>
+    </div>
+    
+    <div class="col-12 mb-3">
+        <label for="{{ form.title.id_for_label }}" class="form-label">
+            {{ form.title.label }}
+            {% if form.title.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.title }}
+        {% if form.title.help_text %}
+            <div class="form-text">{{ form.title.help_text }}</div>
+        {% endif %}
+        {% if form.title.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.title.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-12 mb-4">
+        <label for="{{ form.description.id_for_label }}" class="form-label">
+            {{ form.description.label }}
+            {% if form.description.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.description }}
+        {% if form.description.help_text %}
+            <div class="form-text">{{ form.description.help_text }}</div>
+        {% endif %}
+        {% if form.description.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.description.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Clasificación -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-tags text-success"></i> Clasificación
+        </h5>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.initiative_type.id_for_label }}" class="form-label">
+            {{ form.initiative_type.label }}
+            {% if form.initiative_type.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.initiative_type }}
+        {% if form.initiative_type.help_text %}
+            <div class="form-text">{{ form.initiative_type.help_text }}</div>
+        {% endif %}
+        {% if form.initiative_type.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.initiative_type.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.quarter.id_for_label }}" class="form-label">
+            {{ form.quarter.label }}
+            {% if form.quarter.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.quarter }}
+        {% if form.quarter.help_text %}
+            <div class="form-text">{{ form.quarter.help_text }}</div>
+        {% endif %}
+        {% if form.quarter.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.quarter.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.status.id_for_label }}" class="form-label">
+            {{ form.status.label }}
+            {% if form.status.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.status }}
+        {% if form.status.help_text %}
+            <div class="form-text">{{ form.status.help_text }}</div>
+        {% endif %}
+        {% if form.status.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.status.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.priority.id_for_label }}" class="form-label">
+            {{ form.priority.label }}
+            {% if form.priority.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.priority }}
+        {% if form.priority.help_text %}
+            <div class="form-text">{{ form.priority.help_text }}</div>
+        {% endif %}
+        {% if form.priority.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.priority.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.progress.id_for_label }}" class="form-label">
+            {{ form.progress.label }}
+            {% if form.progress.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        <div class="input-group">
+            {{ form.progress }}
+            <span class="input-group-text">%</span>
+        </div>
+        {% if form.progress.help_text %}
+            <div class="form-text">{{ form.progress.help_text }}</div>
+        {% endif %}
+        {% if form.progress.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.progress.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="form-check mt-4">
+            {{ form.is_operational }}
+            <label class="form-check-label" for="{{ form.is_operational.id_for_label }}">
+                {{ form.is_operational.label }}
+            </label>
+            {% if form.is_operational.help_text %}
+                <div class="form-text">{{ form.is_operational.help_text }}</div>
+            {% endif %}
+            {% if form.is_operational.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.is_operational.errors|join:", " }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Responsabilidad -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-users text-info"></i> Responsabilidad
+        </h5>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.owner.id_for_label }}" class="form-label">
+            {{ form.owner.label }}
+            {% if form.owner.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.owner }}
+        {% if form.owner.help_text %}
+            <div class="form-text">{{ form.owner.help_text }}</div>
+        {% endif %}
+        {% if form.owner.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.owner.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <label for="{{ form.collaborators.id_for_label }}" class="form-label">
+            {{ form.collaborators.label }}
+            {% if form.collaborators.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.collaborators }}
+        <div class="form-text">Mantén presionada la tecla Ctrl (Cmd en Mac) para seleccionar múltiples colaboradores</div>
+        {% if form.collaborators.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.collaborators.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Fechas -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-calendar text-warning"></i> Planificación Temporal
+        </h5>
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <label for="{{ form.start_date.id_for_label }}" class="form-label">
+            {{ form.start_date.label }}
+            {% if form.start_date.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.start_date }}
+        {% if form.start_date.help_text %}
+            <div class="form-text">{{ form.start_date.help_text }}</div>
+        {% endif %}
+        {% if form.start_date.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.start_date.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <label for="{{ form.target_date.id_for_label }}" class="form-label">
+            {{ form.target_date.label }}
+            {% if form.target_date.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.target_date }}
+        {% if form.target_date.help_text %}
+            <div class="form-text">{{ form.target_date.help_text }}</div>
+        {% endif %}
+        {% if form.target_date.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.target_date.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <label for="{{ form.completion_date.id_for_label }}" class="form-label">
+            {{ form.completion_date.label }}
+            {% if form.completion_date.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.completion_date }}
+        {% if form.completion_date.help_text %}
+            <div class="form-text">{{ form.completion_date.help_text }}</div>
+        {% endif %}
+        {% if form.completion_date.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.completion_date.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.section-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    margin: 0 -1rem;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.form-section {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.375rem;
+    margin-bottom: 2rem;
+}
+
+.progress-display {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.progress-bar-container {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: #0d6efd;
+    transition: width 0.3s ease;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Actualizar barra de progreso en tiempo real
+    const progressInput = document.getElementById('{{ form.progress.id_for_label }}');
+    
+    if (progressInput) {
+        function updateProgressBar() {
+            const value = progressInput.value || 0;
+            const progressBar = document.querySelector('.progress-bar-fill');
+            const progressText = document.querySelector('.progress-text');
+            
+            if (progressBar) {
+                progressBar.style.width = value + '%';
+            }
+            if (progressText) {
+                progressText.textContent = value + '%';
+            }
+        }
+        
+        progressInput.addEventListener('input', updateProgressBar);
+        updateProgressBar(); // Inicializar
+    }
+    
+    // Validación de fechas
+    const startDate = document.getElementById('{{ form.start_date.id_for_label }}');
+    const targetDate = document.getElementById('{{ form.target_date.id_for_label }}');
+    const completionDate = document.getElementById('{{ form.completion_date.id_for_label }}');
+    
+    function validateDates() {
+        if (startDate.value && targetDate.value) {
+            if (new Date(targetDate.value) < new Date(startDate.value)) {
+                targetDate.setCustomValidity('La fecha objetivo debe ser posterior a la fecha de inicio');
+            } else {
+                targetDate.setCustomValidity('');
+            }
+        }
+        
+        if (startDate.value && completionDate.value) {
+            if (new Date(completionDate.value) < new Date(startDate.value)) {
+                completionDate.setCustomValidity('La fecha de completado debe ser posterior a la fecha de inicio');
+            } else {
+                completionDate.setCustomValidity('');
+            }
+        }
+    }
+    
+    [startDate, targetDate, completionDate].forEach(function(field) {
+        if (field) {
+            field.addEventListener('change', validateDates);
+        }
+    });
+    
+    // Auto-completar fecha de completado cuando el estado es "COMPLETED"
+    const statusField = document.getElementById('{{ form.status.id_for_label }}');
+    
+    if (statusField && completionDate) {
+        statusField.addEventListener('change', function() {
+            if (this.value === 'COMPLETED' && !completionDate.value) {
+                const today = new Date().toISOString().split('T')[0];
+                completionDate.value = today;
+            } else if (this.value !== 'COMPLETED') {
+                completionDate.value = '';
+            }
+        });
+    }
+    
+    // Ayuda contextual para tipo operativo
+    const isOperationalField = document.getElementById('{{ form.is_operational.id_for_label }}');
+    
+    if (isOperationalField) {
+        isOperationalField.addEventListener('change', function() {
+            const helpText = this.closest('.form-check').querySelector('.form-text');
+            if (this.checked) {
+                if (!helpText) {
+                    const newHelpText = document.createElement('div');
+                    newHelpText.className = 'form-text';
+                    newHelpText.innerHTML = '<i class="fas fa-info-circle"></i> Esta iniciativa será tratada como una tarea operativa recurrente.';
+                    this.closest('.form-check').appendChild(newHelpText);
+                }
+            } else {
+                if (helpText) {
+                    helpText.remove();
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

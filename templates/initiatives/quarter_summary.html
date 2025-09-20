@@ -1,0 +1,541 @@
+{% extends 'base.html' %}
+
+{% block title %}
+{% if quarter %}
+    Resumen {{ quarter }}
+{% else %}
+    Resumen de Quarters
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-chart-pie"></i> Resumen de Quarter</h1>
+            {% if quarter %}
+                <p class="lead">{{ quarter }} - {{ quarter.start_date|date:"d/m/Y" }} al {{ quarter.end_date|date:"d/m/Y" }}</p>
+                {% if quarter.is_active %}
+                    <span class="badge bg-success">Periodo Activo</span>
+                {% endif %}
+            {% else %}
+                <p class="lead text-muted">Selecciona un periodo para ver el resumen</p>
+            {% endif %}
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="btn-group" role="group">
+                <a href="{% url 'initiatives:dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-calendar"></i> Cambiar Quarter
+                    </button>
+                    <ul class="dropdown-menu">
+                        {% for q in quarters %}
+                            <li>
+                                <a class="dropdown-item {% if q == quarter %}active{% endif %}" 
+                                   href="{% url 'initiatives:quarter_summary_detail' q.pk %}">
+                                    {{ q }}
+                                    {% if q.is_active %}
+                                        <span class="badge bg-success ms-2">Activo</span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                        {% empty %}
+                            <li><span class="dropdown-item-text text-muted">No hay quarters disponibles</span></li>
+                        {% endfor %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'initiatives:quarter_create' %}"><i class="fas fa-plus"></i> Nuevo Quarter</a></li>
+                        <li><a class="dropdown-item" href="{% url 'initiatives:quarter_list' %}"><i class="fas fa-list"></i> Lista de Quarters</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if quarter %}
+    <!-- Estadísticas Generales -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ initiatives.count }}</h3>
+                    <p class="mb-0">Total Iniciativas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-success">{{ initiatives|length|floatformat:0 }}</h3>
+                    <p class="mb-0">Completadas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">{{ total_metrics }}</h3>
+                    <p class="mb-0">Métricas Definidas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    {% with avg_progress=initiatives.aggregate.progress__avg|default:0 %}
+                    <h3 class="text-info">{{ avg_progress|floatformat:0 }}%</h3>
+                    <p class="mb-0">Progreso Promedio</p>
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Gráfico por Estado -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Distribución por Estado</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="position: relative; height: 300px;">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico por Prioridad -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Distribución por Prioridad</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="position: relative; height: 300px;">
+                        <canvas id="priorityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas por Tipo -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-tags"></i> Rendimiento por Tipo de Iniciativa</h5>
+                </div>
+                <div class="card-body">
+                    {% if stats_by_type %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Cantidad</th>
+                                        <th>Progreso Promedio</th>
+                                        <th>Distribución</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for stat in stats_by_type %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ stat.initiative_type__name }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ stat.count }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress me-2" style="width: 100px; height: 8px;">
+                                                    <div class="progress-bar bg-info" 
+                                                         style="width: {{ stat.avg_progress|default:0 }}%"></div>
+                                                </div>
+                                                <small>{{ stat.avg_progress|default:0|floatformat:0 }}%</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% widthratio stat.count initiatives.count 100 as percentage %}
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-primary" 
+                                                     style="width: {{ percentage }}%">
+                                                    {{ percentage }}%
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                            <p>No hay datos por tipo disponibles</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas por Empleado -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-users"></i> Rendimiento por Empleado</h5>
+                </div>
+                <div class="card-body">
+                    {% if stats_by_owner %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Empleado</th>
+                                        <th>Iniciativas</th>
+                                        <th>Progreso Promedio</th>
+                                        <th>Carga de Trabajo</th>
+                                        <th>Rendimiento</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for stat in stats_by_owner %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="user-avatar me-2">
+                                                    {{ stat.owner__user__first_name.0 }}{{ stat.owner__user__last_name.0 }}
+                                                </div>
+                                                <strong>{{ stat.owner__user__first_name }} {{ stat.owner__user__last_name }}</strong>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ stat.count }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress me-2" style="width: 100px; height: 8px;">
+                                                    <div class="progress-bar 
+                                                        {% if stat.avg_progress >= 75 %}bg-success
+                                                        {% elif stat.avg_progress >= 50 %}bg-info
+                                                        {% elif stat.avg_progress >= 25 %}bg-warning
+                                                        {% else %}bg-danger{% endif %}" 
+                                                         style="width: {{ stat.avg_progress|default:0 }}%"></div>
+                                                </div>
+                                                <small>{{ stat.avg_progress|default:0|floatformat:0 }}%</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% widthratio stat.count initiatives.count 100 as workload %}
+                                            <div class="progress" style="height: 15px;">
+                                                <div class="progress-bar 
+                                                    {% if workload > 40 %}bg-danger
+                                                    {% elif workload > 25 %}bg-warning
+                                                    {% else %}bg-success{% endif %}" 
+                                                     style="width: {{ workload }}%">
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">{{ workload }}% del total</small>
+                                        </td>
+                                        <td>
+                                            {% if stat.avg_progress >= 75 %}
+                                                <span class="badge bg-success">Excelente</span>
+                                            {% elif stat.avg_progress >= 50 %}
+                                                <span class="badge bg-info">Bueno</span>
+                                            {% elif stat.avg_progress >= 25 %}
+                                                <span class="badge bg-warning">Regular</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Bajo</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-users fa-2x mb-2"></i>
+                            <p>No hay datos por empleado disponibles</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline de Iniciativas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-timeline"></i> Cronología de Iniciativas</h5>
+                </div>
+                <div class="card-body">
+                    {% if initiatives %}
+                        <div class="timeline-chart" style="height: 200px; overflow-x: auto;">
+                            <!-- Aquí se podría implementar un gráfico de Gantt -->
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> 
+                                Vista de cronología de iniciativas (próximamente)
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="fas fa-timeline fa-2x mb-2"></i>
+                            <p>No hay iniciativas para mostrar en la cronología</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Iniciativas Destacadas -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fas fa-star"></i> Top Performers</h6>
+                </div>
+                <div class="card-body">
+                    {% for initiative in initiatives %}
+                        {% if initiative.progress >= 75 %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <small><strong>{{ initiative.title|truncatewords:5 }}</strong></small>
+                                <br><small class="text-muted">{{ initiative.owner.full_name }}</small>
+                            </div>
+                            <span class="badge bg-success">{{ initiative.progress }}%</span>
+                        </div>
+                        {% endif %}
+                    {% empty %}
+                        <p class="text-muted mb-0">No hay iniciativas destacadas</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Necesitan Atención</h6>
+                </div>
+                <div class="card-body">
+                    {% for initiative in initiatives %}
+                        {% if initiative.progress < 25 or initiative.status == 'BLOCKED' %}
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <small><strong>{{ initiative.title|truncatewords:5 }}</strong></small>
+                                <br><small class="text-muted">{{ initiative.owner.full_name }}</small>
+                            </div>
+                            <div>
+                                {% if initiative.status == 'BLOCKED' %}
+                                    <span class="badge bg-danger">Bloqueada</span>
+                                {% else %}
+                                    <span class="badge bg-warning">{{ initiative.progress }}%</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% empty %}
+                        <p class="text-muted mb-0">Todas las iniciativas están en buen estado</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- No hay quarter seleccionado -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                    <h5>Selecciona un Quarter</h5>
+                    <p class="text-muted">Elige un periodo para ver el resumen de iniciativas.</p>
+                    {% if quarters %}
+                        <div class="btn-group" role="group">
+                            {% for q in quarters %}
+                                <a href="{% url 'initiatives:quarter_summary_detail' q.pk %}" 
+                                   class="btn btn-outline-primary">
+                                    {{ q }}
+                                    {% if q.is_active %}
+                                        <span class="badge bg-success ms-1">Activo</span>
+                                    {% endif %}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <a href="#" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Crear Primer Quarter
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.chart-container {
+    position: relative;
+    width: 100%;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    background: #6c757d;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+.timeline-chart {
+    background: #f8f9fa;
+    border-radius: 0.375rem;
+    padding: 1rem;
+}
+
+.performance-badge {
+    font-size: 0.75em;
+}
+
+.stats-card {
+    transition: transform 0.2s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+}
+
+.table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    border-top: none;
+}
+
+.card-header.bg-success,
+.card-header.bg-warning {
+    font-weight: 600;
+}
+
+/* Responsive charts */
+@media (max-width: 768px) {
+    .chart-container {
+        height: 250px !important;
+    }
+    
+    .stats-card .card-body {
+        padding: 0.75rem;
+    }
+    
+    .stats-card h3 {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Datos para los gráficos (estos vendrían del backend)
+    const statusData = {
+        labels: ['Backlog', 'Planeado', 'En Progreso', 'Bloqueado', 'Completado'],
+        datasets: [{
+            data: [10, 15, 25, 5, 20], // Datos de ejemplo
+            backgroundColor: [
+                '#6c757d',
+                '#0d6efd', 
+                '#ffc107',
+                '#dc3545',
+                '#198754'
+            ]
+        }]
+    };
+    
+    const priorityData = {
+        labels: ['Baja', 'Media', 'Alta', 'Crítica'],
+        datasets: [{
+            data: [20, 35, 25, 10], // Datos de ejemplo
+            backgroundColor: [
+                '#6c757d',
+                '#0d6efd',
+                '#ffc107',
+                '#dc3545'
+            ]
+        }]
+    };
+    
+    // Configuración común para gráficos
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    };
+    
+    // Crear gráfico de estado
+    const statusCtx = document.getElementById('statusChart');
+    if (statusCtx) {
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: statusData,
+            options: chartOptions
+        });
+    }
+    
+    // Crear gráfico de prioridad
+    const priorityCtx = document.getElementById('priorityChart');
+    if (priorityCtx) {
+        new Chart(priorityCtx, {
+            type: 'bar',
+            data: priorityData,
+            options: {
+                ...chartOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+});
+
+// Función para exportar resumen
+function exportSummary() {
+    alert('Funcionalidad de exportación pendiente de implementar');
+}
+
+// Función para actualizar datos
+function refreshData() {
+    location.reload();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,433 @@
+{% extends 'base.html' %}
+
+{% block title %}Tareas Operativas{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-cogs"></i> Tareas Operativas</h1>
+            <p class="lead">Gestión de iniciativas operativas recurrentes</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'initiatives:dashboard' %}" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+            <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                <i class="fas fa-plus"></i> Nueva Tarea
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Filtros</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="frequency" class="form-label">Frecuencia</label>
+                    <select name="frequency" id="frequency" class="form-select">
+                        <option value="">Todas</option>
+                        {% for code, name in frequency_choices %}
+                            <option value="{{ code }}" {% if selected_frequency == code %}selected{% endif %}>
+                                {{ name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="owner" class="form-label">Responsable</label>
+                    <select name="owner" id="owner" class="form-select">
+                        <option value="">Todos</option>
+                        {% for employee in employees %}
+                            <option value="{{ employee.id }}" {% if selected_owner == employee.id|stringformat:"s" %}selected{% endif %}>
+                                {{ employee.full_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary mt-4">
+                        <i class="fas fa-search"></i> Filtrar
+                    </button>
+                    <a href="{% url 'initiatives:operational_tasks' %}" class="btn btn-secondary mt-4 ms-2">
+                        <i class="fas fa-times"></i> Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tareas por Frecuencia -->
+    {% if tasks_by_frequency %}
+        {% for frequency, tasks in tasks_by_frequency.items %}
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-clock"></i> {{ frequency }}
+                    <span class="badge bg-light text-dark ms-2">{{ tasks|length }}</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Iniciativa</th>
+                                <th>Responsable</th>
+                                <th>Configuración</th>
+                                <th>Duración</th>
+                                <th>Última Ejecución</th>
+                                <th>Próxima Ejecución</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-cogs text-warning me-2"></i>
+                                        <div>
+                                            <strong>
+                                                <a href="{% url 'initiatives:initiative_detail' task.initiative.pk %}" 
+                                                   class="text-decoration-none">
+                                                    {{ task.initiative.title }}
+                                                </a>
+                                            </strong>
+                                            {% if task.initiative.description %}
+                                                <br><small class="text-muted">{{ task.initiative.description|truncatewords:8 }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ task.initiative.owner.full_name }}</td>
+                                <td>
+                                    <div class="small">
+                                        {% if task.day_of_week is not None %}
+                                            <div><strong>Día:</strong> 
+                                                {% if task.day_of_week == 0 %}Lunes
+                                                {% elif task.day_of_week == 1 %}Martes
+                                                {% elif task.day_of_week == 2 %}Miércoles
+                                                {% elif task.day_of_week == 3 %}Jueves
+                                                {% elif task.day_of_week == 4 %}Viernes
+                                                {% elif task.day_of_week == 5 %}Sábado
+                                                {% else %}Domingo{% endif %}
+                                            </div>
+                                        {% endif %}
+                                        {% if task.day_of_month %}
+                                            <div><strong>Día del mes:</strong> {{ task.day_of_month }}</div>
+                                        {% endif %}
+                                        {% if task.time_of_day %}
+                                            <div><strong>Hora:</strong> {{ task.time_of_day|time:"H:i" }}</div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if task.duration_hours %}
+                                        {{ task.duration_hours }} hrs
+                                    {% else %}
+                                        <span class="text-muted">No definida</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if task.last_execution %}
+                                        <div>{{ task.last_execution|date:"d/m/Y" }}</div>
+                                        <small class="text-muted">{{ task.last_execution|time:"H:i" }}</small>
+                                    {% else %}
+                                        <span class="text-muted">Nunca</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if task.next_execution %}
+                                        <div>{{ task.next_execution|date:"d/m/Y" }}</div>
+                                        <small class="text-muted">{{ task.next_execution|time:"H:i" }}</small>
+                                        {% if task.next_execution.date < today %}
+                                            <i class="fas fa-exclamation-triangle text-danger ms-1" title="Vencida"></i>
+                                        {% elif task.next_execution.date == today %}
+                                            <i class="fas fa-clock text-warning ms-1" title="Hoy"></i>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">No programada</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if task.initiative.status == 'IN_PROGRESS' %}
+                                        <span class="badge bg-success">Activa</span>
+                                    {% elif task.initiative.status == 'COMPLETED' %}
+                                        <span class="badge bg-info">Completada</span>
+                                    {% elif task.initiative.status == 'BLOCKED' %}
+                                        <span class="badge bg-danger">Bloqueada</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ task.initiative.get_status_display }}</span>
+                                    {% endif %}
+                                    
+                                    {% if task.initiative.priority == 'HIGH' or task.initiative.priority == 'CRITICAL' %}
+                                        <div><small class="badge bg-warning mt-1">Alta Prioridad</small></div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-outline-success" 
+                                                onclick="markAsExecuted({{ task.id }})" 
+                                                title="Marcar como ejecutada">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <a href="#" class="btn btn-sm btn-outline-primary" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'initiatives:initiative_detail' task.initiative.pk %}" 
+                                           class="btn btn-sm btn-outline-info" title="Ver iniciativa">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-cogs fa-3x text-muted mb-3"></i>
+                <h5>No se encontraron tareas operativas</h5>
+                <p class="text-muted">No hay tareas operativas que coincidan con los filtros seleccionados.</p>
+                <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                    <i class="fas fa-plus"></i> Crear Primera Tarea Operativa
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Resumen -->
+    {% if tasks_by_frequency %}
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ tasks_by_frequency.values|length }}</h3>
+                    <p class="mb-0">Total de Tareas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-success">
+                        {{ tasks_by_frequency.Diario|default_if_none:0|length }}
+                    </h3>
+                    <p class="mb-0">Diarias</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-info">
+                        {{ tasks_by_frequency.Semanal|default_if_none:0|length }}
+                    </h3>
+                    <p class="mb-0">Semanales</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">
+                        {{ tasks_by_frequency.Mensual|default_if_none:0|length }}
+                    </h3>
+                    <p class="mb-0">Mensuales</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal para crear tarea operativa -->
+<div class="modal fade" id="createTaskModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus"></i> Nueva Tarea Operativa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    Las tareas operativas deben estar asociadas a iniciativas marcadas como "operativas".
+                </div>
+                <form id="operationalTaskForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label for="initiative" class="form-label">Iniciativa Operativa <span class="text-danger">*</span></label>
+                            <select class="form-select" id="initiative" name="initiative" required>
+                                <option value="">Seleccionar iniciativa...</option>
+                                <!-- Las opciones se cargarían dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="frequency" class="form-label">Frecuencia <span class="text-danger">*</span></label>
+                            <select class="form-select" id="task_frequency" name="frequency" required>
+                                <option value="">Seleccionar frecuencia...</option>
+                                {% for code, name in frequency_choices %}
+                                    <option value="{{ code }}">{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="duration_hours" class="form-label">Duración (horas)</label>
+                            <input type="number" class="form-control" id="duration_hours" name="duration_hours" 
+                                   step="0.5" min="0" placeholder="ej: 2.5">
+                        </div>
+                        <div class="col-md-4 mb-3" id="dayOfWeekField" style="display: none;">
+                            <label for="day_of_week" class="form-label">Día de la Semana</label>
+                            <select class="form-select" id="day_of_week" name="day_of_week">
+                                <option value="">Seleccionar día...</option>
+                                <option value="0">Lunes</option>
+                                <option value="1">Martes</option>
+                                <option value="2">Miércoles</option>
+                                <option value="3">Jueves</option>
+                                <option value="4">Viernes</option>
+                                <option value="5">Sábado</option>
+                                <option value="6">Domingo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3" id="dayOfMonthField" style="display: none;">
+                            <label for="day_of_month" class="form-label">Día del Mes</label>
+                            <input type="number" class="form-control" id="day_of_month" name="day_of_month" 
+                                   min="1" max="31" placeholder="1-31">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="time_of_day" class="form-label">Hora del Día</label>
+                            <input type="time" class="form-control" id="time_of_day" name="time_of_day">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="createOperationalTask()">
+                    <i class="fas fa-save"></i> Crear Tarea
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.task-config {
+    background: #f8f9fa;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.execution-status {
+    position: relative;
+}
+
+.execution-status.overdue {
+    background: linear-gradient(45deg, transparent 40%, rgba(220, 53, 69, 0.1) 50%, transparent 60%);
+}
+
+.execution-status.today {
+    background: linear-gradient(45deg, transparent 40%, rgba(255, 193, 7, 0.1) 50%, transparent 60%);
+}
+
+.btn-group .btn {
+    border-radius: 0;
+}
+
+.btn-group .btn:first-child {
+    border-top-left-radius: 0.375rem;
+    border-bottom-left-radius: 0.375rem;
+}
+
+.btn-group .btn:last-child {
+    border-top-right-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+}
+
+.frequency-header {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function markAsExecuted(taskId) {
+    if (confirm('¿Marcar esta tarea como ejecutada? Esto actualizará la fecha de última ejecución.')) {
+        // Implementar lógica AJAX para marcar como ejecutada
+        alert('Funcionalidad de marcar como ejecutada pendiente de implementar');
+    }
+}
+
+function createOperationalTask() {
+    const form = document.getElementById('operationalTaskForm');
+    const formData = new FormData(form);
+    
+    // Validación básica
+    if (!formData.get('initiative') || !formData.get('frequency')) {
+        alert('Por favor, completa todos los campos requeridos.');
+        return;
+    }
+    
+    // Implementar lógica AJAX para crear tarea
+    alert('Funcionalidad de creación de tarea operativa pendiente de implementar');
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('createTaskModal'));
+    modal.hide();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Mostrar/ocultar campos según la frecuencia seleccionada
+    const frequencySelect = document.getElementById('task_frequency');
+    const dayOfWeekField = document.getElementById('dayOfWeekField');
+    const dayOfMonthField = document.getElementById('dayOfMonthField');
+    
+    if (frequencySelect) {
+        frequencySelect.addEventListener('change', function() {
+            const frequency = this.value;
+            
+            // Ocultar todos los campos condicionales
+            dayOfWeekField.style.display = 'none';
+            dayOfMonthField.style.display = 'none';
+            
+            // Mostrar campos según la frecuencia
+            if (frequency === 'WEEKLY' || frequency === 'BIWEEKLY') {
+                dayOfWeekField.style.display = 'block';
+            } else if (frequency === 'MONTHLY' || frequency === 'QUARTERLY' || frequency === 'YEARLY') {
+                dayOfMonthField.style.display = 'block';
+            }
+        });
+    }
+    
+    // Filtro automático
+    const filters = ['frequency', 'owner'];
+    filters.forEach(function(filterId) {
+        const element = document.getElementById(filterId);
+        if (element) {
+            element.addEventListener('change', function() {
+                this.form.submit();
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

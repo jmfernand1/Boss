@@ -1,0 +1,360 @@
+{% extends 'base.html' %}
+
+{% block title %}Tipos de Iniciativa{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-tags"></i> Tipos de Iniciativa</h1>
+            <p class="lead">Gestiona los tipos de iniciativas disponibles en el sistema</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'initiatives:dashboard' %}" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left"></i> Dashboard
+            </a>
+            <a href="#" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Tipo
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas Rápidas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-primary">{{ initiative_types.count }}</h3>
+                    <p class="mb-0">Total Tipos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-success">5</h3>
+                    <p class="mb-0">Categorías</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-info">{{ most_used_count|default:0 }}</h3>
+                    <p class="mb-0">Más Utilizado</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h3 class="text-warning">{{ total_initiatives|default:0 }}</h3>
+                    <p class="mb-0">Iniciativas</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tipos por Categoría -->
+    {% regroup initiative_types by category as category_groups %}
+    {% for category in category_groups %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-folder"></i> {{ category.grouper|capfirst }}
+                <span class="badge bg-secondary ms-2">{{ category.list|length }}</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for type in category.list %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100 border-start" style="border-left-color: {{ type.color }} !important; border-left-width: 4px !important;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title mb-0">{{ type.name }}</h6>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-link p-0" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="#">
+                                                <i class="fas fa-edit"></i> Editar
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#">
+                                                <i class="fas fa-copy"></i> Duplicar
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <span class="badge" style="background-color: {{ type.color }};">
+                                    {{ type.get_category_display }}
+                                </span>
+                            </div>
+                            
+                            {% if type.description %}
+                                <p class="card-text small text-muted">{{ type.description|truncatewords:15 }}</p>
+                            {% else %}
+                                <p class="card-text small text-muted fst-italic">Sin descripción</p>
+                            {% endif %}
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-lightbulb"></i> 
+                                    {{ type.initiatives.count|default:0 }} iniciativas
+                                </small>
+                                <div class="color-indicator" style="width: 20px; height: 20px; background-color: {{ type.color }}; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px #dee2e6;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+            <h5>No hay tipos de iniciativa</h5>
+            <p class="text-muted">Crea el primer tipo de iniciativa para comenzar a organizar tus proyectos.</p>
+            <a href="#" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Crear Primer Tipo
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Análisis de Uso -->
+    {% if initiative_types %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Análisis de Uso</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Categoría</th>
+                            <th>Color</th>
+                            <th>Iniciativas Activas</th>
+                            <th>Total Histórico</th>
+                            <th>Popularidad</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for type in initiative_types %}
+                        <tr>
+                            <td>
+                                <strong>{{ type.name }}</strong>
+                                {% if type.description %}
+                                    <br><small class="text-muted">{{ type.description|truncatewords:8 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge" style="background-color: {{ type.color }};">
+                                    {{ type.get_category_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="color-swatch me-2" style="width: 20px; height: 20px; background-color: {{ type.color }}; border-radius: 3px; border: 1px solid #dee2e6;"></div>
+                                    <code class="small">{{ type.color }}</code>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ type.active_initiatives_count|default:0 }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ type.initiatives.count|default:0 }}</span>
+                            </td>
+                            <td>
+                                {% with total=initiative_types.count type_count=type.initiatives.count %}
+                                    {% if total > 0 %}
+                                        {% widthratio type_count total 100 as popularity %}
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar" style="width: {{ popularity }}%; background-color: {{ type.color }};"></div>
+                                        </div>
+                                        <small class="text-muted">{{ popularity }}%</small>
+                                    {% else %}
+                                        <span class="text-muted">0%</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="#" class="btn btn-sm btn-outline-primary" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-sm btn-outline-info" title="Ver iniciativas">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.color-indicator {
+    transition: transform 0.2s ease;
+}
+
+.card:hover .color-indicator {
+    transform: scale(1.1);
+}
+
+.color-swatch {
+    transition: transform 0.2s ease;
+}
+
+.color-swatch:hover {
+    transform: scale(1.2);
+}
+
+.card.border-start {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card.border-start:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+.category-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.usage-stats {
+    background: #f8f9fa;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    text-align: center;
+}
+
+.type-card {
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.type-card:hover {
+    border-color: rgba(13, 110, 253, 0.3);
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .btn-group .btn {
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .color-swatch {
+        width: 15px !important;
+        height: 15px !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(typeId, typeName) {
+    if (confirm(`¿Estás seguro de que quieres eliminar el tipo "${typeName}"?\n\nEsta acción no se puede deshacer y puede afectar las iniciativas existentes.`)) {
+        // Implementar lógica de eliminación
+        alert('Funcionalidad de eliminación pendiente de implementar');
+    }
+}
+
+function duplicateType(typeId) {
+    if (confirm('¿Duplicar este tipo de iniciativa?')) {
+        // Implementar lógica de duplicación
+        alert('Funcionalidad de duplicación pendiente de implementar');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Tooltip para colores
+    const colorSwatches = document.querySelectorAll('.color-swatch');
+    colorSwatches.forEach(function(swatch) {
+        swatch.addEventListener('click', function() {
+            const color = this.style.backgroundColor;
+            navigator.clipboard.writeText(color).then(function() {
+                // Mostrar notificación temporal
+                const notification = document.createElement('div');
+                notification.className = 'alert alert-success position-fixed';
+                notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999;';
+                notification.textContent = 'Color copiado al portapapeles';
+                document.body.appendChild(notification);
+                
+                setTimeout(() => notification.remove(), 2000);
+            });
+        });
+    });
+    
+    // Filtro rápido
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.className = 'form-control mb-3';
+    searchInput.placeholder = 'Buscar tipos de iniciativa...';
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const typeCards = document.querySelectorAll('.card h-100');
+        
+        typeCards.forEach(function(card) {
+            const typeName = card.querySelector('.card-title').textContent.toLowerCase();
+            const typeDescription = card.querySelector('.card-text')?.textContent.toLowerCase() || '';
+            
+            if (typeName.includes(searchTerm) || typeDescription.includes(searchTerm)) {
+                card.closest('.col-md-6').style.display = 'block';
+            } else {
+                card.closest('.col-md-6').style.display = 'none';
+            }
+        });
+    });
+    
+    // Insertar campo de búsqueda antes del primer card
+    const firstCard = document.querySelector('.card');
+    if (firstCard) {
+        firstCard.parentNode.insertBefore(searchInput, firstCard);
+    }
+});
+</script>
+{% endblock %}

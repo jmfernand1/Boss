@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar {{ initiative_type.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-trash text-danger"></i> Eliminar Tipo de Iniciativa</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'initiatives:initiative_type_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmación de Eliminación</h5>
+                </div>
+                <div class="card-body">
+                    {% if initiatives_count > 0 %}
+                        <div class="alert alert-danger">
+                            <strong>¡No se puede eliminar!</strong> Este tipo está siendo usado en {{ initiatives_count }} iniciativas.
+                        </div>
+                        <p>Para eliminar este tipo, primero debes reasignar o eliminar todas las iniciativas que lo usan.</p>
+                        <div class="text-center">
+                            <a href="{% url 'initiatives:initiative_type_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver a la Lista
+                            </a>
+                            <a href="{% url 'initiatives:initiative_list' %}?type={{ initiative_type.pk }}" class="btn btn-primary">
+                                <i class="fas fa-eye"></i> Ver Iniciativas que Usan este Tipo
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                        </div>
+
+                        <!-- Información del tipo -->
+                        <div class="mb-4">
+                            <h6>Vas a eliminar el siguiente tipo de iniciativa:</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="color-indicator me-3" style="width: 30px; height: 30px; background-color: {{ initiative_type.color }}; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px #dee2e6;"></div>
+                                        <div>
+                                            <h5 class="card-title mb-1">{{ initiative_type.name }}</h5>
+                                            <span class="badge" style="background-color: {{ initiative_type.color }};">
+                                                {{ initiative_type.get_category_display }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if initiative_type.description %}
+                                        <p class="card-text">{{ initiative_type.description }}</p>
+                                    {% endif %}
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>Categoría:</strong> {{ initiative_type.get_category_display }}<br>
+                                            <strong>Color:</strong> {{ initiative_type.color }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Iniciativas asociadas:</strong> {{ initiatives_count }}<br>
+                                            <strong>Estado:</strong> Sin uso
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                                <label class="form-check-label" for="confirmDelete">
+                                    Entiendo que esta acción es irreversible
+                                </label>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'initiatives:initiative_type_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> Eliminar Tipo
+                                </button>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

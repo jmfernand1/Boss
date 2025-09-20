@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Métrica{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-trash text-danger"></i> Eliminar Métrica</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'initiatives:initiative_detail' initiative.pk %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmación de Eliminación</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>¡Atención!</strong> Esta acción eliminará permanentemente la métrica y su historial de seguimiento.
+                    </div>
+
+                    <!-- Información de la métrica -->
+                    <div class="mb-4">
+                        <h6>Vas a eliminar la siguiente métrica:</h6>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="d-flex align-items-start mb-3">
+                                    <i class="fas fa-chart-bar text-primary fa-2x me-3"></i>
+                                    <div class="flex-grow-1">
+                                        <h5 class="card-title mb-2">{{ metric.metric_name }}</h5>
+                                        
+                                        <!-- Progreso visual -->
+                                        <div class="progress mb-3" style="height: 20px;">
+                                            <div class="progress-bar 
+                                                {% if metric.achievement_percentage >= 100 %}bg-success
+                                                {% elif metric.achievement_percentage >= 75 %}bg-info
+                                                {% elif metric.achievement_percentage >= 50 %}bg-warning
+                                                {% else %}bg-danger{% endif %}" 
+                                                style="width: {{ metric.achievement_percentage|floatformat:0 }}%">
+                                                {{ metric.achievement_percentage|floatformat:0 }}%
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between">
+                                            <span><strong>{{ metric.current_value }} {{ metric.unit }}</strong></span>
+                                            <span class="text-muted">/ {{ metric.target_value }} {{ metric.unit }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Iniciativa:</strong> {{ initiative.title }}<br>
+                                        <strong>Valor Objetivo:</strong> {{ metric.target_value }} {{ metric.unit }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Valor Actual:</strong> {{ metric.current_value }} {{ metric.unit }}<br>
+                                        <strong>Medido en:</strong> {{ metric.measured_at|date:"d/m/Y" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Nota:</strong> Se perderá todo el historial de seguimiento de esta métrica.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                            <label class="form-check-label" for="confirmDelete">
+                                Entiendo que esta acción es irreversible y se perderá el historial
+                            </label>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'initiatives:initiative_detail' initiative.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Eliminar Métrica
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

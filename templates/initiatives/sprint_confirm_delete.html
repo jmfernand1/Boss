@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar {{ sprint.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-trash text-danger"></i> Eliminar Sprint</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'initiatives:sprint_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmación de Eliminación</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                    </div>
+
+                    <!-- Información del sprint -->
+                    <div class="mb-4">
+                        <h6>Vas a eliminar el siguiente sprint:</h6>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    {% if sprint.is_active %}
+                                        <i class="fas fa-play-circle text-success fa-2x me-3"></i>
+                                    {% else %}
+                                        <i class="fas fa-running text-primary fa-2x me-3"></i>
+                                    {% endif %}
+                                    <div>
+                                        <h5 class="card-title mb-1">{{ sprint.name }}</h5>
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge bg-primary me-2">Sprint #{{ sprint.sprint_number }}</span>
+                                            {% if sprint.is_active %}
+                                                <span class="badge bg-success">Activo</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Quarter:</strong> {{ sprint.quarter }}<br>
+                                        <strong>Número:</strong> {{ sprint.sprint_number }}<br>
+                                        <strong>Estado:</strong> 
+                                        {% if sprint.is_active %}
+                                            <span class="text-success">Activo</span>
+                                        {% else %}
+                                            <span class="text-secondary">Inactivo</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Inicio:</strong> {{ sprint.start_date|date:"d/m/Y" }}<br>
+                                        <strong>Fin:</strong> {{ sprint.end_date|date:"d/m/Y" }}<br>
+                                        <strong>Duración:</strong> 
+                                        {{ sprint.start_date|timesince:sprint.end_date }}
+                                    </div>
+                                </div>
+                                
+                                {% if sprint.goal %}
+                                    <div class="mt-3">
+                                        <strong>Objetivo:</strong>
+                                        <p class="mb-0">{{ sprint.goal }}</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if sprint.is_active %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Nota:</strong> Al eliminar este sprint activo, deberás activar manualmente otro sprint si es necesario.
+                        </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                            <label class="form-check-label" for="confirmDelete">
+                                Entiendo que esta acción es irreversible
+                            </label>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'initiatives:sprint_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Eliminar Sprint
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

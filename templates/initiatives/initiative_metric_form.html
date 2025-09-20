@@ -1,0 +1,158 @@
+{% extends 'initiatives/form_base.html' %}
+
+{% block title %}
+{% if action == 'create' %}
+    Nueva Métrica
+{% else %}
+    Editar Métrica
+{% endif %}
+{% endblock %}
+
+{% block form_content %}
+<div class="row">
+    <!-- Información de la Iniciativa -->
+    <div class="col-12 mb-4">
+        <div class="alert alert-info">
+            <h6><i class="fas fa-lightbulb"></i> Iniciativa</h6>
+            <strong>{{ initiative.title }}</strong><br>
+            <small class="text-muted">{{ initiative.description|truncatewords:15 }}</small>
+        </div>
+    </div>
+    
+    <!-- Formulario de Métrica -->
+    <div class="col-12 mb-3">
+        <label for="{{ form.metric_name.id_for_label }}" class="form-label">
+            {{ form.metric_name.label }}
+            {% if form.metric_name.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.metric_name }}
+        <div class="form-text">Nombre descriptivo de la métrica (ej: "Usuarios Activos", "Ventas Mensuales")</div>
+        {% if form.metric_name.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.metric_name.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.target_value.id_for_label }}" class="form-label">
+            {{ form.target_value.label }}
+            {% if form.target_value.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.target_value }}
+        <div class="form-text">Valor que se quiere alcanzar</div>
+        {% if form.target_value.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.target_value.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.current_value.id_for_label }}" class="form-label">
+            {{ form.current_value.label }}
+        </label>
+        {{ form.current_value }}
+        <div class="form-text">Valor actual de la métrica</div>
+        {% if form.current_value.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.current_value.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.unit.id_for_label }}" class="form-label">
+            {{ form.unit.label }}
+        </label>
+        {{ form.unit }}
+        <div class="form-text">Unidad de medida (ej: %, unidades, $, usuarios)</div>
+        {% if form.unit.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.unit.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.measured_at.id_for_label }}" class="form-label">
+            {{ form.measured_at.label }}
+        </label>
+        {{ form.measured_at }}
+        <div class="form-text">Fecha de la medición</div>
+        {% if form.measured_at.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.measured_at.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Vista previa del progreso -->
+    <div class="col-12">
+        <div class="alert alert-light" id="metric-preview">
+            <h6><i class="fas fa-chart-bar"></i> Vista Previa</h6>
+            <div id="preview-content">
+                <div class="progress mb-2" style="height: 20px;">
+                    <div class="progress-bar" id="preview-bar" style="width: 0%">0%</div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span><span id="current-preview">0</span> <span id="unit-preview"></span></span>
+                    <span>/ <span id="target-preview">0</span> <span id="unit-preview-2"></span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const targetInput = document.getElementById('{{ form.target_value.id_for_label }}');
+    const currentInput = document.getElementById('{{ form.current_value.id_for_label }}');
+    const unitInput = document.getElementById('{{ form.unit.id_for_label }}');
+    
+    function updatePreview() {
+        const target = parseFloat(targetInput.value) || 0;
+        const current = parseFloat(currentInput.value) || 0;
+        const unit = unitInput.value || '';
+        
+        const percentage = target > 0 ? Math.round((current / target) * 100) : 0;
+        
+        document.getElementById('current-preview').textContent = current;
+        document.getElementById('target-preview').textContent = target;
+        document.getElementById('unit-preview').textContent = unit;
+        document.getElementById('unit-preview-2').textContent = unit;
+        
+        const progressBar = document.getElementById('preview-bar');
+        progressBar.style.width = Math.min(percentage, 100) + '%';
+        progressBar.textContent = percentage + '%';
+        
+        // Cambiar color según el progreso
+        if (percentage >= 100) {
+            progressBar.className = 'progress-bar bg-success';
+        } else if (percentage >= 75) {
+            progressBar.className = 'progress-bar bg-info';
+        } else if (percentage >= 50) {
+            progressBar.className = 'progress-bar bg-warning';
+        } else {
+            progressBar.className = 'progress-bar bg-danger';
+        }
+    }
+    
+    [targetInput, currentInput, unitInput].forEach(function(input) {
+        if (input) {
+            input.addEventListener('input', updatePreview);
+        }
+    });
+    
+    // Inicializar vista previa
+    updatePreview();
+});
+</script>
+{% endblock %}

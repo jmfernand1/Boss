@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Tarea Operativa{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-trash text-danger"></i> Eliminar Tarea Operativa</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'initiatives:operational_tasks' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmación de Eliminación</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>¡Atención!</strong> Esta acción eliminará la configuración operativa pero no afectará la iniciativa asociada.
+                    </div>
+
+                    <!-- Información de la tarea -->
+                    <div class="mb-4">
+                        <h6>Vas a eliminar la siguiente tarea operativa:</h6>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-cogs text-warning fa-2x me-3"></i>
+                                    <div>
+                                        <h5 class="card-title mb-1">{{ task.initiative.title }}</h5>
+                                        <span class="badge bg-primary">{{ task.get_frequency_display }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Iniciativa:</strong> {{ task.initiative.title }}<br>
+                                        <strong>Responsable:</strong> {{ task.initiative.owner.full_name }}<br>
+                                        <strong>Frecuencia:</strong> {{ task.get_frequency_display }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% if task.day_of_week is not None %}
+                                            <strong>Día de la Semana:</strong> 
+                                            {% if task.day_of_week == 0 %}Lunes
+                                            {% elif task.day_of_week == 1 %}Martes
+                                            {% elif task.day_of_week == 2 %}Miércoles
+                                            {% elif task.day_of_week == 3 %}Jueves
+                                            {% elif task.day_of_week == 4 %}Viernes
+                                            {% elif task.day_of_week == 5 %}Sábado
+                                            {% else %}Domingo{% endif %}<br>
+                                        {% endif %}
+                                        
+                                        {% if task.day_of_month %}
+                                            <strong>Día del Mes:</strong> {{ task.day_of_month }}<br>
+                                        {% endif %}
+                                        
+                                        {% if task.time_of_day %}
+                                            <strong>Hora:</strong> {{ task.time_of_day|time:"H:i" }}<br>
+                                        {% endif %}
+                                        
+                                        {% if task.duration_hours %}
+                                            <strong>Duración:</strong> {{ task.duration_hours }} horas
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                {% if task.last_execution %}
+                                    <div class="mt-3">
+                                        <strong>Última Ejecución:</strong> {{ task.last_execution|date:"d/m/Y H:i" }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Nota:</strong> La iniciativa "{{ task.initiative.title }}" permanecerá intacta, solo se eliminará la configuración operativa.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                            <label class="form-check-label" for="confirmDelete">
+                                Entiendo que esta acción es irreversible
+                            </label>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'initiatives:operational_tasks' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Eliminar Tarea Operativa
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

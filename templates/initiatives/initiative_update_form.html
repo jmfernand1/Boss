@@ -1,0 +1,86 @@
+{% extends 'initiatives/form_base.html' %}
+
+{% block title %}
+{% if action == 'create' %}
+    Nueva Actualización
+{% else %}
+    Editar Actualización
+{% endif %}
+{% endblock %}
+
+{% block form_content %}
+<div class="row">
+    <!-- Información de la Iniciativa -->
+    <div class="col-12 mb-4">
+        <div class="alert alert-info">
+            <h6><i class="fas fa-lightbulb"></i> Iniciativa</h6>
+            <strong>{{ initiative.title }}</strong><br>
+            <small class="text-muted">{{ initiative.description|truncatewords:15 }}</small>
+        </div>
+    </div>
+    
+    <!-- Formulario de Actualización -->
+    <div class="col-12 mb-3">
+        <label for="{{ form.update_type.id_for_label }}" class="form-label">
+            {{ form.update_type.label }}
+            {% if form.update_type.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.update_type }}
+        {% if form.update_type.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.update_type.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-12 mb-3">
+        <label for="{{ form.title.id_for_label }}" class="form-label">
+            {{ form.title.label }}
+            {% if form.title.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.title }}
+        {% if form.title.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.title.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-12 mb-3">
+        <label for="{{ form.description.id_for_label }}" class="form-label">
+            {{ form.description.label }}
+            {% if form.description.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.description }}
+        <div class="form-text">Describe detalladamente la actualización</div>
+        {% if form.description.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.description.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    {% if action == 'edit' %}
+    <div class="col-12 mb-3">
+        <div class="form-check">
+            {{ form.is_resolved }}
+            <label class="form-check-label" for="{{ form.is_resolved.id_for_label }}">
+                {{ form.is_resolved.label }}
+            </label>
+            <div class="form-text">Marca como resuelto si el tema ha sido solucionado</div>
+        </div>
+        {% if form.is_resolved.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.is_resolved.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

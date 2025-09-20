@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar {{ initiative.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1><i class="fas fa-trash text-danger"></i> Eliminar Iniciativa</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'initiatives:initiative_detail' initiative.pk %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmación de Eliminación</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>¡Atención!</strong> Esta acción no se puede deshacer. Se eliminarán todos los datos relacionados con esta iniciativa.
+                    </div>
+
+                    <!-- Información de la iniciativa -->
+                    <div class="mb-4">
+                        <h6>Vas a eliminar la siguiente iniciativa:</h6>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h5 class="card-title">
+                                            {% if initiative.is_operational %}
+                                                <i class="fas fa-cogs text-warning"></i>
+                                            {% else %}
+                                                <i class="fas fa-lightbulb text-primary"></i>
+                                            {% endif %}
+                                            {{ initiative.title }}
+                                        </h5>
+                                        {% if initiative.description %}
+                                            <p class="card-text">{{ initiative.description|truncatewords:20 }}</p>
+                                        {% endif %}
+                                        <div class="row">
+                                            <div class="col-sm-6">
+                                                <strong>Tipo:</strong> {{ initiative.initiative_type.name }}<br>
+                                                <strong>Responsable:</strong> {{ initiative.owner.full_name }}<br>
+                                                <strong>Periodo:</strong> {{ initiative.quarter }}
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <strong>Estado:</strong> 
+                                                {% if initiative.status == 'IN_PROGRESS' %}
+                                                    <span class="badge bg-success">En Progreso</span>
+                                                {% elif initiative.status == 'COMPLETED' %}
+                                                    <span class="badge bg-info">Completado</span>
+                                                {% elif initiative.status == 'BLOCKED' %}
+                                                    <span class="badge bg-danger">Bloqueado</span>
+                                                {% elif initiative.status == 'PLANNED' %}
+                                                    <span class="badge bg-primary">Planeado</span>
+                                                {% elif initiative.status == 'CANCELLED' %}
+                                                    <span class="badge bg-dark">Cancelado</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ initiative.get_status_display }}</span>
+                                                {% endif %}
+                                                <br>
+                                                <strong>Progreso:</strong> {{ initiative.progress }}%<br>
+                                                <strong>Prioridad:</strong> {{ initiative.get_priority_display }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <div class="progress mb-2" style="height: 20px;">
+                                            <div class="progress-bar 
+                                                {% if initiative.progress < 25 %}bg-danger
+                                                {% elif initiative.progress < 50 %}bg-warning
+                                                {% elif initiative.progress < 75 %}bg-info
+                                                {% else %}bg-success{% endif %}" 
+                                                style="width: {{ initiative.progress }}%">
+                                                {{ initiative.progress }}%
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">
+                                            Creado: {{ initiative.created_at|date:"d/m/Y" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información sobre datos relacionados -->
+                    <div class="mb-4">
+                        <h6>Datos que se eliminarán junto con esta iniciativa:</h6>
+                        <ul class="list-group">
+                            {% if initiative.updates.exists %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-timeline text-info"></i> Actualizaciones</span>
+                                    <span class="badge bg-primary rounded-pill">{{ initiative.updates.count }}</span>
+                                </li>
+                            {% endif %}
+                            
+                            {% if initiative.metrics.exists %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-chart-bar text-success"></i> Métricas</span>
+                                    <span class="badge bg-primary rounded-pill">{{ initiative.metrics.count }}</span>
+                                </li>
+                            {% endif %}
+                            
+                            {% if initiative.is_operational and initiative.operational_details %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-cogs text-warning"></i> Detalles operativos</span>
+                                    <span class="badge bg-primary rounded-pill">1</span>
+                                </li>
+                            {% endif %}
+                            
+                            {% if initiative.collaborators.exists %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-users text-secondary"></i> Relación con colaboradores</span>
+                                    <span class="badge bg-primary rounded-pill">{{ initiative.collaborators.count }}</span>
+                                </li>
+                            {% endif %}
+                            
+                            {% if not initiative.updates.exists and not initiative.metrics.exists and not initiative.operational_details and not initiative.collaborators.exists %}
+                                <li class="list-group-item text-muted">
+                                    <i class="fas fa-info-circle"></i> No hay datos adicionales para eliminar
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <!-- Formulario de confirmación -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Campo de confirmación -->
+                        <div class="mb-3">
+                            <label for="confirmation" class="form-label">
+                                Para confirmar la eliminación, escribe <strong>"{{ initiative.title }}"</strong> en el campo de abajo:
+                            </label>
+                            <input type="text" class="form-control" id="confirmation" name="confirmation" 
+                                   placeholder="Escribe el título de la iniciativa" required>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="understand" name="understand" required>
+                            <label class="form-check-label" for="understand">
+                                Entiendo que esta acción es irreversible y que se eliminarán todos los datos relacionados
+                            </label>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'initiatives:initiative_detail' initiative.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                                <i class="fas fa-trash"></i> Eliminar Definitivamente
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card.border-danger {
+    border-width: 2px;
+}
+
+.confirmation-box {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.delete-info {
+    background: #f8f9fa;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+.list-group-item {
+    border: 1px solid rgba(0,0,0,.125);
+}
+
+.badge.rounded-pill {
+    font-size: 0.75em;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmationInput = document.getElementById('confirmation');
+    const understandCheckbox = document.getElementById('understand');
+    const deleteButton = document.getElementById('deleteButton');
+    const expectedTitle = "{{ initiative.title|escapejs }}";
+    
+    function checkFormValidity() {
+        const titleMatches = confirmationInput.value === expectedTitle;
+        const understands = understandCheckbox.checked;
+        
+        deleteButton.disabled = !(titleMatches && understands);
+        
+        if (titleMatches) {
+            confirmationInput.classList.remove('is-invalid');
+            confirmationInput.classList.add('is-valid');
+        } else if (confirmationInput.value.length > 0) {
+            confirmationInput.classList.remove('is-valid');
+            confirmationInput.classList.add('is-invalid');
+        } else {
+            confirmationInput.classList.remove('is-valid', 'is-invalid');
+        }
+    }
+    
+    confirmationInput.addEventListener('input', checkFormValidity);
+    understandCheckbox.addEventListener('change', checkFormValidity);
+    
+    // Validación adicional antes del envío
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (confirmationInput.value !== expectedTitle) {
+            e.preventDefault();
+            alert('El título ingresado no coincide con el título de la iniciativa.');
+            confirmationInput.focus();
+            return false;
+        }
+        
+        if (!understandCheckbox.checked) {
+            e.preventDefault();
+            alert('Debes confirmar que entiendes las consecuencias de esta acción.');
+            understandCheckbox.focus();
+            return false;
+        }
+        
+        // Confirmación final
+        if (!confirm('¿Estás absolutamente seguro de que quieres eliminar esta iniciativa? Esta acción NO se puede deshacer.')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

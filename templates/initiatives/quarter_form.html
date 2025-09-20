@@ -1,0 +1,279 @@
+{% extends 'initiatives/form_base.html' %}
+
+{% block title %}
+{% if action == 'create' %}
+    Nuevo Periodo (Q)
+{% else %}
+    Editar {{ form.instance }}
+{% endif %}
+{% endblock %}
+
+{% block form_content %}
+<div class="row">
+    <!-- Información Básica -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-calendar text-primary"></i> Información del Periodo
+        </h5>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.year.id_for_label }}" class="form-label">
+            {{ form.year.label }}
+            {% if form.year.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.year }}
+        {% if form.year.help_text %}
+            <div class="form-text">{{ form.year.help_text }}</div>
+        {% endif %}
+        {% if form.year.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.year.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.quarter.id_for_label }}" class="form-label">
+            {{ form.quarter.label }}
+            {% if form.quarter.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.quarter }}
+        <div class="form-text">Selecciona el trimestre (1, 2, 3 o 4)</div>
+        {% if form.quarter.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.quarter.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Fechas -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-clock text-info"></i> Periodo Temporal
+        </h5>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.start_date.id_for_label }}" class="form-label">
+            {{ form.start_date.label }}
+            {% if form.start_date.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.start_date }}
+        <div class="form-text">Se calculará automáticamente si se deja vacío</div>
+        {% if form.start_date.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.start_date.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.end_date.id_for_label }}" class="form-label">
+            {{ form.end_date.label }}
+            {% if form.end_date.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.end_date }}
+        <div class="form-text">Se calculará automáticamente si se deja vacío</div>
+        {% if form.end_date.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.end_date.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Estado -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-toggle-on text-warning"></i> Estado
+        </h5>
+    </div>
+    
+    <div class="col-12 mb-3">
+        <div class="form-check">
+            {{ form.is_active }}
+            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                {{ form.is_active.label }}
+            </label>
+            <div class="form-text">Solo puede haber un periodo activo a la vez. Al activar este periodo, se desactivarán automáticamente los demás.</div>
+        </div>
+        {% if form.is_active.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.is_active.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Vista previa del periodo -->
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h6><i class="fas fa-info-circle"></i> Vista Previa</h6>
+            <p class="mb-0">
+                <strong>Periodo:</strong> <span id="preview-quarter">Q<span id="quarter-num">1</span> <span id="year-num">{{ form.year.value|default:"2024" }}</span></span><br>
+                <strong>Duración:</strong> <span id="preview-dates">Aproximadamente 3 meses</span>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.quarter-preview {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.date-range-display {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.quarter-selector {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.quarter-option {
+    padding: 0.75rem;
+    border: 2px solid #dee2e6;
+    border-radius: 0.375rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quarter-option:hover {
+    border-color: #0d6efd;
+    background: #f8f9fa;
+}
+
+.quarter-option.selected {
+    border-color: #0d6efd;
+    background: #e7f3ff;
+    font-weight: 600;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const yearInput = document.getElementById('{{ form.year.id_for_label }}');
+    const quarterInput = document.getElementById('{{ form.quarter.id_for_label }}');
+    const startDateInput = document.getElementById('{{ form.start_date.id_for_label }}');
+    const endDateInput = document.getElementById('{{ form.end_date.id_for_label }}');
+    
+    // Actualizar vista previa
+    function updatePreview() {
+        const year = yearInput.value || new Date().getFullYear();
+        const quarter = quarterInput.value || 1;
+        
+        document.getElementById('quarter-num').textContent = quarter;
+        document.getElementById('year-num').textContent = year;
+        
+        // Calcular fechas automáticamente si están vacías
+        if (!startDateInput.value || !endDateInput.value) {
+            const quarterDates = calculateQuarterDates(year, quarter);
+            
+            if (!startDateInput.value) {
+                startDateInput.value = quarterDates.start;
+            }
+            if (!endDateInput.value) {
+                endDateInput.value = quarterDates.end;
+            }
+        }
+        
+        // Actualizar vista previa de fechas
+        if (startDateInput.value && endDateInput.value) {
+            const start = new Date(startDateInput.value);
+            const end = new Date(endDateInput.value);
+            const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+            document.getElementById('preview-dates').textContent = 
+                `${start.toLocaleDateString('es-ES')} - ${end.toLocaleDateString('es-ES')} (${days} días)`;
+        }
+    }
+    
+    function calculateQuarterDates(year, quarter) {
+        const quarterStarts = {
+            1: `${year}-01-01`,
+            2: `${year}-04-01`,
+            3: `${year}-07-01`,
+            4: `${year}-10-01`
+        };
+        
+        const quarterEnds = {
+            1: `${year}-03-31`,
+            2: `${year}-06-30`,
+            3: `${year}-09-30`,
+            4: `${year}-12-31`
+        };
+        
+        return {
+            start: quarterStarts[quarter],
+            end: quarterEnds[quarter]
+        };
+    }
+    
+    // Event listeners
+    [yearInput, quarterInput, startDateInput, endDateInput].forEach(function(input) {
+        if (input) {
+            input.addEventListener('change', updatePreview);
+            input.addEventListener('input', updatePreview);
+        }
+    });
+    
+    // Inicializar vista previa
+    updatePreview();
+    
+    // Validación de fechas
+    function validateDates() {
+        if (startDateInput.value && endDateInput.value) {
+            const start = new Date(startDateInput.value);
+            const end = new Date(endDateInput.value);
+            
+            if (end <= start) {
+                endDateInput.setCustomValidity('La fecha de fin debe ser posterior a la fecha de inicio');
+            } else {
+                endDateInput.setCustomValidity('');
+            }
+        }
+    }
+    
+    [startDateInput, endDateInput].forEach(function(input) {
+        if (input) {
+            input.addEventListener('change', validateDates);
+        }
+    });
+    
+    // Advertencia sobre periodo activo
+    const isActiveCheckbox = document.getElementById('{{ form.is_active.id_for_label }}');
+    if (isActiveCheckbox) {
+        isActiveCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                if (!confirm('Al activar este periodo, se desactivarán automáticamente todos los demás periodos. ¿Continuar?')) {
+                    this.checked = false;
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

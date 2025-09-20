@@ -1,0 +1,273 @@
+{% extends 'initiatives/form_base.html' %}
+
+{% block title %}
+{% if action == 'create' %}
+    Nuevo Tipo de Iniciativa
+{% else %}
+    Editar {{ form.instance.name }}
+{% endif %}
+{% endblock %}
+
+{% block form_content %}
+<div class="row">
+    <!-- Información Básica -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-tag text-primary"></i> Información del Tipo
+        </h5>
+    </div>
+    
+    <div class="col-md-8 mb-3">
+        <label for="{{ form.name.id_for_label }}" class="form-label">
+            {{ form.name.label }}
+            {% if form.name.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.name }}
+        <div class="form-text">Nombre descriptivo del tipo de iniciativa</div>
+        {% if form.name.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.name.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4 mb-3">
+        <label for="{{ form.category.id_for_label }}" class="form-label">
+            {{ form.category.label }}
+            {% if form.category.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.category }}
+        {% if form.category.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.category.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-12 mb-3">
+        <label for="{{ form.description.id_for_label }}" class="form-label">
+            {{ form.description.label }}
+        </label>
+        {{ form.description }}
+        <div class="form-text">Descripción detallada del tipo de iniciativa y cuándo usarlo</div>
+        {% if form.description.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.description.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Personalización Visual -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-palette text-info"></i> Personalización Visual
+        </h5>
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.color.id_for_label }}" class="form-label">
+            {{ form.color.label }}
+        </label>
+        <div class="input-group">
+            {{ form.color }}
+            <button type="button" class="btn btn-outline-secondary" onclick="randomColor()">
+                <i class="fas fa-random"></i> Aleatorio
+            </button>
+        </div>
+        <div class="form-text">Color que se usará para identificar este tipo en gráficos y badges</div>
+        {% if form.color.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.color.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Vista Previa</label>
+        <div class="preview-container">
+            <div class="badge-preview">
+                <span class="badge" id="color-preview" style="background-color: {{ form.color.value|default:'#3498db' }};">
+                    <span id="name-preview">{{ form.name.value|default:'Tipo de Ejemplo' }}</span>
+                </span>
+            </div>
+            <div class="category-preview mt-2">
+                <small class="text-muted">
+                    Categoría: <span id="category-preview">{{ form.category.value|default:'PROYECTO' }}</span>
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Información de Categorías -->
+    <div class="col-12">
+        <div class="alert alert-light border">
+            <h6><i class="fas fa-info-circle"></i> Información sobre Categorías</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>OPERATIVO:</strong> Tareas recurrentes de mantenimiento<br>
+                    <strong>PROYECTO:</strong> Iniciativas con entregables específicos<br>
+                    <strong>INICIATIVA:</strong> Esfuerzos estratégicos de largo plazo
+                </div>
+                <div class="col-md-6">
+                    <strong>MEJORA:</strong> Optimizaciones de procesos existentes<br>
+                    <strong>SOPORTE:</strong> Actividades de apoyo y asistencia
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.preview-container {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    text-align: center;
+}
+
+.badge-preview {
+    margin-bottom: 0.5rem;
+}
+
+.badge-preview .badge {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+}
+
+.category-preview {
+    font-style: italic;
+}
+
+.color-palette {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.color-option {
+    width: 40px;
+    height: 40px;
+    border-radius: 0.375rem;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.color-option:hover {
+    border-color: #0d6efd;
+    transform: scale(1.1);
+}
+
+.predefined-colors {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.category-info {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.getElementById('{{ form.name.id_for_label }}');
+    const categoryInput = document.getElementById('{{ form.category.id_for_label }}');
+    const colorInput = document.getElementById('{{ form.color.id_for_label }}');
+    const namePreview = document.getElementById('name-preview');
+    const categoryPreview = document.getElementById('category-preview');
+    const colorPreview = document.getElementById('color-preview');
+    
+    // Actualizar vista previa en tiempo real
+    function updatePreview() {
+        if (nameInput.value) {
+            namePreview.textContent = nameInput.value;
+        }
+        
+        if (categoryInput.value) {
+            const categoryText = categoryInput.options[categoryInput.selectedIndex].text;
+            categoryPreview.textContent = categoryText;
+        }
+        
+        if (colorInput.value) {
+            colorPreview.style.backgroundColor = colorInput.value;
+        }
+    }
+    
+    // Event listeners para actualización en tiempo real
+    [nameInput, categoryInput, colorInput].forEach(function(input) {
+        if (input) {
+            input.addEventListener('input', updatePreview);
+            input.addEventListener('change', updatePreview);
+        }
+    });
+    
+    // Inicializar vista previa
+    updatePreview();
+    
+    // Colores predefinidos sugeridos
+    const suggestedColors = [
+        '#3498db', '#2ecc71', '#f39c12', '#e74c3c',
+        '#9b59b6', '#1abc9c', '#34495e', '#f1c40f',
+        '#e67e22', '#8e44ad', '#16a085', '#27ae60',
+        '#d35400', '#c0392b', '#7f8c8d', '#2980b9'
+    ];
+    
+    // Crear paleta de colores sugeridos
+    const colorPalette = document.createElement('div');
+    colorPalette.className = 'predefined-colors';
+    colorPalette.innerHTML = '<h6>Colores Sugeridos</h6><div class="color-palette"></div>';
+    
+    const paletteContainer = colorPalette.querySelector('.color-palette');
+    suggestedColors.forEach(function(color) {
+        const colorOption = document.createElement('div');
+        colorOption.className = 'color-option';
+        colorOption.style.backgroundColor = color;
+        colorOption.title = color;
+        colorOption.addEventListener('click', function() {
+            colorInput.value = color;
+            updatePreview();
+        });
+        paletteContainer.appendChild(colorOption);
+    });
+    
+    // Insertar paleta después del campo de color
+    colorInput.closest('.col-md-6').appendChild(colorPalette);
+});
+
+function randomColor() {
+    const colors = [
+        '#3498db', '#2ecc71', '#f39c12', '#e74c3c',
+        '#9b59b6', '#1abc9c', '#34495e', '#f1c40f',
+        '#e67e22', '#8e44ad', '#16a085', '#27ae60',
+        '#d35400', '#c0392b', '#7f8c8d', '#2980b9',
+        '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24',
+        '#f0932b', '#eb4d4b', '#6c5ce7', '#fd79a8'
+    ];
+    
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    const colorInput = document.getElementById('{{ form.color.id_for_label }}');
+    colorInput.value = randomColor;
+    
+    // Actualizar vista previa
+    document.getElementById('color-preview').style.backgroundColor = randomColor;
+}
+</script>
+{% endblock %}
