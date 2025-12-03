@@ -3,7 +3,8 @@ from django.contrib.auth.models import User
 from datetime import date
 from .models import (
     Initiative, Quarter, Sprint, InitiativeUpdate, 
-    InitiativeMetric, OperationalTask, InitiativeType
+    InitiativeMetric, OperationalTask, InitiativeType,
+    UserStory, Task
 )
 from team.models import Employee
 
@@ -201,8 +202,15 @@ class OperationalTaskForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['initiative'].queryset = Initiative.objects.filter(is_operational=True)
-        self.fields['initiative'].empty_label = "Seleccionar iniciativa operativa..."
+        
+        # Configurar el queryset para mostrar solo iniciativas operativas
+        self.fields['initiative'].queryset = Initiative.objects.filter(
+            is_operational=True
+        ).select_related('owner').order_by('title')
+        
+        # Configurar etiquetas y ayuda
+        self.fields['initiative'].label = 'Iniciativa Operativa'
+        self.fields['initiative'].empty_label = 'Seleccionar iniciativa operativa...'
 
 
 class InitiativeUpdateForm(forms.ModelForm):
@@ -284,7 +292,7 @@ class InitiativeMetricForm(forms.ModelForm):
         })
         # Establecer fecha actual por defecto
         if not self.instance.pk:
-            self.fields['measured_at'].initial = timezone.now().date()
+            self.fields['measured_at'].initial = date.today()
     
     class Meta:
         model = InitiativeMetric
@@ -357,3 +365,211 @@ class QuickInitiativeForm(forms.Form):
             return initiative
         else:
             raise forms.ValidationError('No hay un periodo (Q) activo para crear la iniciativa.')
+
+
+class UserStoryForm(forms.ModelForm):
+    """Formulario para crear/editar historias de usuario"""
+    
+    class Meta:
+        model = UserStory
+        fields = [
+            'initiative', 'title', 'description', 'acceptance_criteria',
+            'story_points', 'priority', 'status', 'assignee', 'sprint'
+        ]
+        widgets = {
+            'initiative': forms.Select(attrs={'class': 'form-select'}),
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'acceptance_criteria': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'story_points': forms.Select(attrs={'class': 'form-select'}),
+            'priority': forms.Select(attrs={'class': 'form-select'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'assignee': forms.Select(attrs={'class': 'form-select'}),
+            'sprint': forms.Select(attrs={'class': 'form-select'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        # Extraer initiative si se pasa como parámetro
+        initiative = kwargs.pop('initiative', None)
+        super().__init__(*args, **kwargs)
+        
+        # Configurar querysets
+        self.fields['assignee'].queryset = Employee.objects.filter(is_active=True).select_related('user')
+        self.fields['initiative'].queryset = Initiative.objects.all().select_related('owner')
+        
+        # Si viene una iniciativa específica, pre-seleccionarla
+        if initiative:
+            self.fields['initiative'].initial = initiative
+            self.fields['initiative'].widget = forms.HiddenInput()
+            # Solo sprints del mismo quarter que la iniciativa
+            self.fields['sprint'].queryset = Sprint.objects.filter(quarter=initiative.quarter)
+        else:
+            self.fields['sprint'].queryset = Sprint.objects.all().select_related('quarter')
+        
+        # Labels vacíos
+        self.fields['initiative'].empty_label = "Seleccionar iniciativa..."
+        self.fields['assignee'].empty_label = "Sin asignar"
+        self.fields['sprint'].empty_label = "Sin sprint asignado"
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        initiative = cleaned_data.get('initiative')
+        sprint = cleaned_data.get('sprint')
+        
+        # Validar que el sprint pertenezca al mismo quarter que la iniciativa
+        if initiative and sprint and sprint.quarter != initiative.quarter:
+            raise forms.ValidationError('El sprint debe pertenecer al mismo periodo (Q) que la iniciativa.')
+        
+        return cleaned_data
+
+
+class TaskForm(forms.ModelForm):
+    """Formulario para crear/editar tareas"""
+    
+    class Meta:
+        model = Task
+        fields = [
+            'user_story', 'title', 'description', 'task_type', 'status',
+            'assignee', 'estimated_hours', 'actual_hours', 'blocked_reason'
+        ]
+        widgets = {
+            'user_story': forms.Select(attrs={'class': 'form-select'}),
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'task_type': forms.Select(attrs={'class': 'form-select'}),
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'assignee': forms.Select(attrs={'class': 'form-select'}),
+            'estimated_hours': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'min': '0'}),
+            'actual_hours': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'min': '0'}),
+            'blocked_reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        # Extraer user_story si se pasa como parámetro
+        user_story = kwargs.pop('user_story', None)
+        super().__init__(*args, **kwargs)
+        
+        # Configurar querysets
+        self.fields['assignee'].queryset = Employee.objects.filter(is_active=True).select_related('user')
+        self.fields['user_story'].queryset = UserStory.objects.all().select_related('initiative')
+        
+        # Si viene una historia específica, pre-seleccionarla
+        if user_story:
+            self.fields['user_story'].initial = user_story
+            self.fields['user_story'].widget = forms.HiddenInput()
+        
+        # Labels vacíos
+        self.fields['user_story'].empty_label = "Seleccionar historia de usuario..."
+        self.fields['assignee'].empty_label = "Sin asignar"
+        
+        # Mostrar/ocultar campo de razón de bloqueo según el estado
+        if self.instance.pk and self.instance.status != 'BLOCKED':
+            self.fields['blocked_reason'].widget = forms.HiddenInput()
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        status = cleaned_data.get('status')
+        blocked_reason = cleaned_data.get('blocked_reason')
+        
+        # Si está bloqueado, debe tener razón
+        if status == 'BLOCKED' and not blocked_reason:
+            raise forms.ValidationError('Debe proporcionar una razón para el bloqueo.')
+        
+        # Si no está bloqueado, limpiar razón
+        if status != 'BLOCKED':
+            cleaned_data['blocked_reason'] = ''
+        
+        return cleaned_data
+
+
+class QuickUserStoryForm(forms.Form):
+    """Formulario rápido para crear historias de usuario"""
+    
+    title = forms.CharField(
+        max_length=200,
+        label='Título',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Como [usuario], quiero [funcionalidad] para [beneficio]'})
+    )
+    description = forms.CharField(
+        label='Descripción',
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        required=False
+    )
+    story_points = forms.ChoiceField(
+        choices=UserStory.STORY_POINTS_CHOICES,
+        label='Story Points',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        required=False
+    )
+    priority = forms.ChoiceField(
+        choices=UserStory.PRIORITY_CHOICES,
+        label='Prioridad',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        initial='MEDIUM'
+    )
+    assignee = forms.ModelChoiceField(
+        queryset=Employee.objects.filter(is_active=True).select_related('user'),
+        label='Asignado a',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        empty_label="Sin asignar",
+        required=False
+    )
+    
+    def save(self, initiative):
+        """Crear la historia de usuario basada en los datos del formulario"""
+        user_story = UserStory(
+            initiative=initiative,
+            title=self.cleaned_data['title'],
+            description=self.cleaned_data['description'] or '',
+            story_points=self.cleaned_data['story_points'] or None,
+            priority=self.cleaned_data['priority'],
+            assignee=self.cleaned_data['assignee']
+        )
+        user_story.save()
+        return user_story
+
+
+class QuickTaskForm(forms.Form):
+    """Formulario rápido para crear tareas"""
+    
+    title = forms.CharField(
+        max_length=200,
+        label='Título',
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    description = forms.CharField(
+        label='Descripción',
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        required=False
+    )
+    task_type = forms.ChoiceField(
+        choices=Task.TASK_TYPE_CHOICES,
+        label='Tipo',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        initial='DEVELOPMENT'
+    )
+    assignee = forms.ModelChoiceField(
+        queryset=Employee.objects.filter(is_active=True).select_related('user'),
+        label='Asignado a',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        empty_label="Sin asignar",
+        required=False
+    )
+    estimated_hours = forms.DecimalField(
+        label='Horas Estimadas',
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.5', 'min': '0'}),
+        required=False
+    )
+    
+    def save(self, user_story):
+        """Crear la tarea basada en los datos del formulario"""
+        task = Task(
+            user_story=user_story,
+            title=self.cleaned_data['title'],
+            description=self.cleaned_data['description'] or '',
+            task_type=self.cleaned_data['task_type'],
+            assignee=self.cleaned_data['assignee'],
+            estimated_hours=self.cleaned_data['estimated_hours']
+        )
+        task.save()
+        return task

@@ -1,0 +1,182 @@
+{% extends 'initiatives/form_base.html' %}
+
+{% block title %}
+{% if action == 'create' %}
+    Nueva Historia de Usuario
+{% else %}
+    Editar {{ form.instance.title }}
+{% endif %}
+{% endblock %}
+
+{% block form_content %}
+<div class="row">
+    <!-- Información Básica -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-book text-success"></i> Información Básica
+        </h5>
+    </div>
+    
+    <!-- Initiative (hidden if preset) -->
+    {% if form.initiative.field.widget.input_type == 'hidden' %}
+        {{ form.initiative }}
+        <div class="col-12 mb-3">
+            <div class="alert alert-info">
+                <i class="fas fa-lightbulb"></i> 
+                <strong>Épica:</strong> {{ initiative.title }}
+            </div>
+        </div>
+    {% else %}
+        <div class="col-12 mb-3">
+            <label for="{{ form.initiative.id_for_label }}" class="form-label">
+                {{ form.initiative.label }}
+                {% if form.initiative.field.required %}
+                    <span class="text-danger">*</span>
+                {% endif %}
+            </label>
+            {{ form.initiative }}
+            {% if form.initiative.help_text %}
+                <div class="form-text">{{ form.initiative.help_text }}</div>
+            {% endif %}
+            {% if form.initiative.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.initiative.errors|join:", " }}
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    <div class="col-12 mb-3">
+        <label for="{{ form.title.id_for_label }}" class="form-label">
+            {{ form.title.label }}
+            {% if form.title.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.title }}
+        <div class="form-text">Como [usuario], quiero [funcionalidad] para [beneficio]</div>
+        {% if form.title.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.title.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-12 mb-4">
+        <label for="{{ form.description.id_for_label }}" class="form-label">
+            {{ form.description.label }}
+            {% if form.description.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.description }}
+        {% if form.description.help_text %}
+            <div class="form-text">{{ form.description.help_text }}</div>
+        {% endif %}
+        {% if form.description.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.description.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-12 mb-4">
+        <label for="{{ form.acceptance_criteria.id_for_label }}" class="form-label">
+            {{ form.acceptance_criteria.label }}
+        </label>
+        {{ form.acceptance_criteria }}
+        <div class="form-text">Define los criterios específicos que deben cumplirse para considerar la historia como "terminada"</div>
+        {% if form.acceptance_criteria.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.acceptance_criteria.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Planificación -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-chart-line text-primary"></i> Planificación
+        </h5>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.story_points.id_for_label }}" class="form-label">
+            {{ form.story_points.label }}
+        </label>
+        {{ form.story_points }}
+        <div class="form-text">Estimación relativa del esfuerzo usando la secuencia de Fibonacci</div>
+        {% if form.story_points.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.story_points.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.priority.id_for_label }}" class="form-label">
+            {{ form.priority.label }}
+            {% if form.priority.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.priority }}
+        {% if form.priority.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.priority.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.status.id_for_label }}" class="form-label">
+            {{ form.status.label }}
+            {% if form.status.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.status }}
+        {% if form.status.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.status.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.assignee.id_for_label }}" class="form-label">
+            {{ form.assignee.label }}
+        </label>
+        {{ form.assignee }}
+        {% if form.assignee.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.assignee.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-12 mb-3">
+        <label for="{{ form.sprint.id_for_label }}" class="form-label">
+            {{ form.sprint.label }}
+        </label>
+        {{ form.sprint }}
+        <div class="form-text">Sprint al que se asignará esta historia de usuario</div>
+        {% if form.sprint.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.sprint.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="text-end mt-4">
+    <button type="submit" class="btn btn-success">
+        <i class="fas fa-save"></i> 
+        {% if action == 'create' %}
+            Crear Historia de Usuario
+        {% else %}
+            Guardar Cambios
+        {% endif %}
+    </button>
+</div>
+{% endblock %}

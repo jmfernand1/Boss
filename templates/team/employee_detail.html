@@ -3,68 +3,79 @@
 {% block title %}{{ employee.full_name }} - Detalle de Empleado{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row mb-4">
+<div class="container py-5">
+    <!-- Header -->
+    <div class="row mb-4 fade-in">
         <div class="col-md-8">
-            <h1>
-                <i class="fas fa-user-circle"></i> {{ employee.full_name }}
-            </h1>
-            <p class="lead">{{ employee.position }} - {{ employee.department }}</p>
+            <div class="d-flex align-items-center">
+                <div class="avatar bg-primary text-white rounded-circle p-4 me-4 d-flex align-items-center justify-content-center shadow-sm"
+                    style="width: 80px; height: 80px; font-size: 2rem; font-weight: bold;">
+                    {{ employee.first_name|first }}{{ employee.last_name|first }}
+                </div>
+                <div>
+                    <h1 class="display-6 fw-bold text-dark mb-1">
+                        {{ employee.full_name }}
+                    </h1>
+                    <p class="text-muted lead mb-0">{{ employee.position }} &bull; {{ employee.department }}</p>
+                </div>
+            </div>
         </div>
-        <div class="col-md-4 text-end">
-            <div class="btn-group" role="group">
-                <a href="{% url 'team:employee_list' %}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Volver
+        <div class="col-md-4 text-end d-flex align-items-center justify-content-end">
+            <div class="btn-group shadow-sm" role="group">
+                <a href="{% url 'team:employee_list' %}" class="btn btn-light text-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
                 </a>
-                <a href="{% url 'team:employee_edit' employee.pk %}" class="btn btn-primary">
-                    <i class="fas fa-edit"></i> Editar
+                <a href="{% url 'team:employee_edit' employee.pk %}" class="btn btn-light text-primary">
+                    <i class="fas fa-edit me-2"></i>Editar
                 </a>
-                <a href="{% url 'team:employee_delete' employee.pk %}" class="btn btn-danger">
-                    <i class="fas fa-trash"></i> Eliminar
+                <a href="{% url 'team:employee_delete' employee.pk %}" class="btn btn-light text-danger">
+                    <i class="fas fa-trash me-2"></i>Eliminar
                 </a>
             </div>
         </div>
     </div>
 
-    <div class="row">
+    <div class="row fade-in" style="animation-delay: 0.1s;">
         <!-- Información Personal -->
         <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información Personal</h5>
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <h5 class="mb-0 text-primary fw-bold"><i class="fas fa-user-circle me-2"></i>Información Personal
+                    </h5>
                 </div>
-                <div class="card-body">
-                    <table class="table table-sm">
+                <div class="card-body p-4">
+                    <table class="table table-borderless mb-0">
                         <tr>
-                            <th width="40%">ID Empleado:</th>
-                            <td>{{ employee.employee_id }}</td>
+                            <td class="text-muted fw-medium w-40 ps-0">ID Empleado:</td>
+                            <td class="fw-bold text-dark">#{{ employee.employee_id }}</td>
                         </tr>
                         <tr>
-                            <th>Email:</th>
-                            <td>{{ employee.user.email }}</td>
+                            <td class="text-muted fw-medium ps-0">Email:</td>
+                            <td class="text-dark">{{ employee.user.email }}</td>
                         </tr>
                         <tr>
-                            <th>Teléfono:</th>
-                            <td>{{ employee.phone|default:"No registrado" }}</td>
+                            <td class="text-muted fw-medium ps-0">Teléfono:</td>
+                            <td class="text-dark">{{ employee.phone|default:"No registrado" }}</td>
                         </tr>
                         <tr>
-                            <th>Móvil:</th>
-                            <td>{{ employee.mobile|default:"No registrado" }}</td>
+                            <td class="text-muted fw-medium ps-0">Móvil:</td>
+                            <td class="text-dark">{{ employee.mobile|default:"No registrado" }}</td>
                         </tr>
                         <tr>
-                            <th>Fecha de Nacimiento:</th>
-                            <td>
+                            <td class="text-muted fw-medium ps-0">Fecha de Nacimiento:</td>
+                            <td class="text-dark">
                                 {{ employee.birth_date|date:"d/m/Y" }}
-                                <span class="text-muted">({{ employee.age }} años)</span>
+                                <span class="badge bg-light text-secondary ms-2">{{ employee.age }} años</span>
                             </td>
                         </tr>
                         <tr>
-                            <th>Estado:</th>
+                            <td class="text-muted fw-medium ps-0">Estado:</td>
                             <td>
                                 {% if employee.is_active %}
-                                    <span class="badge bg-success">Activo</span>
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill">Activo</span>
                                 {% else %}
-                                    <span class="badge bg-secondary">Inactivo</span>
+                                <span
+                                    class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">Inactivo</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -75,35 +86,46 @@
 
         <!-- Información Laboral -->
         <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="fas fa-briefcase"></i> Información Laboral</h5>
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <h5 class="mb-0 text-info fw-bold"><i class="fas fa-briefcase me-2"></i>Información Laboral</h5>
                 </div>
-                <div class="card-body">
-                    <table class="table table-sm">
+                <div class="card-body p-4">
+                    <table class="table table-borderless mb-0">
                         <tr>
-                            <th width="40%">Cargo:</th>
-                            <td>{{ employee.position }}</td>
+                            <td class="text-muted fw-medium w-40 ps-0">Cargo:</td>
+                            <td class="fw-bold text-dark">{{ employee.position }}</td>
                         </tr>
                         <tr>
-                            <th>Departamento:</th>
-                            <td>{{ employee.department }}</td>
+                            <td class="text-muted fw-medium ps-0">Departamento:</td>
+                            <td class="text-dark">{{ employee.department }}</td>
                         </tr>
                         <tr>
-                            <th>Fecha de Ingreso:</th>
-                            <td>{{ employee.hire_date|date:"d/m/Y" }}</td>
+                            <td class="text-muted fw-medium ps-0">Fecha de Ingreso:</td>
+                            <td class="text-dark">{{ employee.hire_date|date:"d/m/Y" }}</td>
                         </tr>
                         <tr>
-                            <th>Antigüedad:</th>
-                            <td>{{ employee.years_of_service }} año{{ employee.years_of_service|pluralize }}</td>
+                            <td class="text-muted fw-medium ps-0">Antigüedad:</td>
+                            <td class="text-dark">{{ employee.years_of_service }} año{{
+                                employee.years_of_service|pluralize }}</td>
                         </tr>
                     </table>
-                    
+
                     {% if employee.emergency_contact %}
-                    <hr>
-                    <h6><i class="fas fa-phone-alt"></i> Contacto de Emergencia</h6>
-                    <p class="mb-1">{{ employee.emergency_contact }}</p>
-                    <p class="mb-0">Tel: {{ employee.emergency_phone|default:"No registrado" }}</p>
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="text-muted fw-bold small text-uppercase mb-3"><i
+                                class="fas fa-phone-alt me-2"></i>Contacto de Emergencia</h6>
+                        <div class="d-flex align-items-center bg-light p-3 rounded">
+                            <div class="avatar-sm bg-warning bg-opacity-10 text-warning rounded-circle p-2 me-3">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark">{{ employee.emergency_contact }}</div>
+                                <div class="small text-muted">Tel: {{ employee.emergency_phone|default:"No registrado"
+                                    }}</div>
+                            </div>
+                        </div>
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -111,116 +133,126 @@
     </div>
 
     <!-- Tabs para información adicional -->
-    <div class="card">
-        <div class="card-header">
+    <div class="card border-0 shadow-lg fade-in" style="animation-delay: 0.2s;">
+        <div class="card-header bg-white border-bottom-0 pt-4 px-4">
             <ul class="nav nav-tabs card-header-tabs" role="tablist">
                 <li class="nav-item">
-                    <a class="nav-link active" data-bs-toggle="tab" href="#ausencias">
-                        <i class="fas fa-calendar-times"></i> Historial de Ausencias
+                    <a class="nav-link active fw-medium" data-bs-toggle="tab" href="#ausencias">
+                        <i class="fas fa-calendar-times me-2"></i>Historial de Ausencias
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#vacaciones">
-                        <i class="fas fa-umbrella-beach"></i> Control de Vacaciones
+                    <a class="nav-link fw-medium" data-bs-toggle="tab" href="#vacaciones">
+                        <i class="fas fa-umbrella-beach me-2"></i>Control de Vacaciones
                     </a>
                 </li>
                 {% if employee.notes %}
                 <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#notas">
-                        <i class="fas fa-sticky-note"></i> Notas
+                    <a class="nav-link fw-medium" data-bs-toggle="tab" href="#notas">
+                        <i class="fas fa-sticky-note me-2"></i>Notas
                     </a>
                 </li>
                 {% endif %}
             </ul>
         </div>
-        <div class="card-body">
+        <div class="card-body p-4">
             <div class="tab-content">
                 <!-- Tab Ausencias -->
                 <div class="tab-pane fade show active" id="ausencias">
                     {% if absences %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Tipo</th>
-                                        <th>Fecha Inicio</th>
-                                        <th>Fecha Fin</th>
-                                        <th>Días</th>
-                                        <th>Motivo</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for absence in absences %}
-                                    <tr>
-                                        <td>
-                                            <span class="badge" style="background-color: {{ absence.absence_type.color }}">
-                                                {{ absence.absence_type.name }}
-                                            </span>
-                                        </td>
-                                        <td>{{ absence.start_date|date:"d/m/Y" }}</td>
-                                        <td>{{ absence.end_date|date:"d/m/Y" }}</td>
-                                        <td>{{ absence.duration_days }}</td>
-                                        <td>{{ absence.reason|default:"-" }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="text-center mt-3">
-                            <a href="{% url 'team:absence_list' %}?employee={{ employee.pk }}" 
-                               class="btn btn-sm btn-outline-primary">
-                                Ver todas las ausencias
-                            </a>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-3 border-0 rounded-start">Tipo</th>
+                                    <th class="border-0">Fecha Inicio</th>
+                                    <th class="border-0">Fecha Fin</th>
+                                    <th class="border-0">Días</th>
+                                    <th class="pe-3 border-0 rounded-end">Motivo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for absence in absences %}
+                                <tr>
+                                    <td class="ps-3">
+                                        <span class="badge rounded-pill"
+                                            style="background-color: {{ absence.absence_type.color }}; color: #fff;">
+                                            {{ absence.absence_type.name }}
+                                        </span>
+                                    </td>
+                                    <td>{{ absence.start_date|date:"d/m/Y" }}</td>
+                                    <td>{{ absence.end_date|date:"d/m/Y" }}</td>
+                                    <td><span class="fw-bold">{{ absence.duration_days }}</span></td>
+                                    <td class="pe-3 text-muted">{{ absence.reason|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{% url 'team:absence_list' %}?employee={{ employee.pk }}"
+                            class="btn btn-sm btn-outline-primary rounded-pill px-4">
+                            Ver todas las ausencias
+                        </a>
+                    </div>
                     {% else %}
-                        <p class="text-muted text-center py-3">
-                            No hay ausencias registradas para este empleado.
-                        </p>
+                    <div class="text-center py-4">
+                        <div class="avatar bg-light rounded-circle p-3 mb-3 mx-auto"
+                            style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-calendar-check text-muted opacity-50 fa-lg"></i>
+                        </div>
+                        <p class="text-muted mb-0">No hay ausencias registradas para este empleado.</p>
+                    </div>
                     {% endif %}
                 </div>
 
                 <!-- Tab Vacaciones -->
                 <div class="tab-pane fade" id="vacaciones">
                     {% if vacation_records %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Año</th>
-                                        <th>Días Correspondientes</th>
-                                        <th>Días Tomados</th>
-                                        <th>Días Pendientes</th>
-                                        <th>Notas</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for vacation in vacation_records %}
-                                    <tr {% if vacation.days_pending > 10 %}class="table-warning"{% endif %}>
-                                        <td><strong>{{ vacation.year }}</strong></td>
-                                        <td>{{ vacation.days_entitled }}</td>
-                                        <td>{{ vacation.days_taken }}</td>
-                                        <td>
-                                            <strong class="{% if vacation.days_pending > 0 %}text-success{% else %}text-muted{% endif %}">
-                                                {{ vacation.days_pending }}
-                                            </strong>
-                                        </td>
-                                        <td>{{ vacation.notes|default:"-" }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-3 border-0 rounded-start">Año</th>
+                                    <th class="border-0">Días Correspondientes</th>
+                                    <th class="border-0">Días Tomados</th>
+                                    <th class="border-0">Días Pendientes</th>
+                                    <th class="pe-3 border-0 rounded-end">Notas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for vacation in vacation_records %}
+                                <tr {% if vacation.days_pending> 10 %}class="bg-warning bg-opacity-10"{% endif %}>
+                                    <td class="ps-3"><strong>{{ vacation.year }}</strong></td>
+                                    <td>{{ vacation.days_entitled }}</td>
+                                    <td>{{ vacation.days_taken }}</td>
+                                    <td>
+                                        <strong
+                                            class="{% if vacation.days_pending > 0 %}text-success{% else %}text-muted{% endif %}">
+                                            {{ vacation.days_pending }}
+                                        </strong>
+                                    </td>
+                                    <td class="pe-3 text-muted">{{ vacation.notes|default:"-" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                     {% else %}
-                        <p class="text-muted text-center py-3">
-                            No hay registros de vacaciones para este empleado.
-                        </p>
+                    <div class="text-center py-4">
+                        <div class="avatar bg-light rounded-circle p-3 mb-3 mx-auto"
+                            style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-umbrella-beach text-muted opacity-50 fa-lg"></i>
+                        </div>
+                        <p class="text-muted mb-0">No hay registros de vacaciones para este empleado.</p>
+                    </div>
                     {% endif %}
                 </div>
 
                 <!-- Tab Notas -->
                 {% if employee.notes %}
                 <div class="tab-pane fade" id="notas">
-                    <div class="p-3">
+                    <div class="p-3 bg-light rounded border">
                         {{ employee.notes|linebreaks }}
                     </div>
                 </div>
@@ -230,36 +262,69 @@
     </div>
 
     <!-- Acciones Rápidas -->
-    <div class="row mt-4">
+    <div class="row mt-5 fade-in" style="animation-delay: 0.3s;">
         <div class="col-12">
-            <h5>Acciones Rápidas</h5>
-            <div class="btn-group" role="group">
-                <a href="{% url 'team:absence_create' %}?employee={{ employee.pk }}" 
-                   class="btn btn-outline-warning">
-                    <i class="fas fa-calendar-plus"></i> Registrar Ausencia
+            <h5 class="mb-3 fw-bold text-secondary">Acciones Rápidas</h5>
+            <div class="d-flex gap-3 flex-wrap">
+                <a href="{% url 'team:absence_create' %}?employee={{ employee.pk }}"
+                    class="btn btn-white border shadow-sm hover-lift d-flex align-items-center p-3">
+                    <div class="avatar-sm bg-warning bg-opacity-10 text-warning rounded-circle p-2 me-3">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <div class="text-start">
+                        <div class="fw-bold text-dark">Registrar Ausencia</div>
+                        <div class="small text-muted">Nueva falta o permiso</div>
+                    </div>
                 </a>
-                <a href="{% url 'team:vacation_create' %}?employee={{ employee.pk }}" 
-                   class="btn btn-outline-success">
-                    <i class="fas fa-umbrella-beach"></i> Actualizar Vacaciones
+                <a href="{% url 'team:vacation_create' %}?employee={{ employee.pk }}"
+                    class="btn btn-white border shadow-sm hover-lift d-flex align-items-center p-3">
+                    <div class="avatar-sm bg-success bg-opacity-10 text-success rounded-circle p-2 me-3">
+                        <i class="fas fa-umbrella-beach"></i>
+                    </div>
+                    <div class="text-start">
+                        <div class="fw-bold text-dark">Actualizar Vacaciones</div>
+                        <div class="small text-muted">Ajustar saldo anual</div>
+                    </div>
                 </a>
-                <a href="{% url 'initiatives:initiative_list' %}?owner={{ employee.pk }}" 
-                   class="btn btn-outline-primary">
-                    <i class="fas fa-tasks"></i> Ver Iniciativas
+                <a href="{% url 'initiatives:initiative_list' %}?owner={{ employee.pk }}"
+                    class="btn btn-white border shadow-sm hover-lift d-flex align-items-center p-3">
+                    <div class="avatar-sm bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-3">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <div class="text-start">
+                        <div class="fw-bold text-dark">Ver Iniciativas</div>
+                        <div class="small text-muted">Proyectos asignados</div>
+                    </div>
                 </a>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .hover-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
+    }
+
+    .btn-white {
+        background-color: #fff;
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-$(document).ready(function() {
-    // Activar tabs
-    var triggerTabList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tab"]'));
-    triggerTabList.forEach(function (triggerEl) {
-        new bootstrap.Tab(triggerEl);
+    $(document).ready(function () {
+        // Activar tabs
+        var triggerTabList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tab"]'));
+        triggerTabList.forEach(function (triggerEl) {
+            new bootstrap.Tab(triggerEl);
+        });
     });
-});
 </script>
 {% endblock %}

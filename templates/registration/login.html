@@ -4,55 +4,68 @@
 
 {% block content %}
 <div class="container">
-    <div class="row justify-content-center mt-5">
-        <div class="col-md-4">
-            <div class="card shadow">
-                <div class="card-body">
-                    <h3 class="text-center mb-4">
-                        <i class="fas fa-users-cog"></i> BOSS
-                    </h3>
-                    <h5 class="text-center mb-4">Iniciar Sesión</h5>
-                    
+    <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-md-5 col-lg-4">
+            <div class="text-center mb-4 fade-in">
+                <div class="avatar bg-white text-primary rounded-circle p-4 mb-3 mx-auto shadow-lg d-flex align-items-center justify-content-center"
+                    style="width: 80px; height: 80px;">
+                    <i class="fas fa-cube fa-2x"></i>
+                </div>
+                <h2 class="fw-bold text-white mb-1">BOSS</h2>
+                <p class="text-white-50">Business Operations Support System</p>
+            </div>
+
+            <div class="card border-0 shadow-lg fade-in"
+                style="animation-delay: 0.1s; backdrop-filter: blur(10px); background-color: rgba(255, 255, 255, 0.95);">
+                <div class="card-body p-5">
+                    <h4 class="text-center fw-bold text-dark mb-4">Bienvenido</h4>
+
                     {% if form.errors %}
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <strong>Error:</strong> Usuario o contraseña incorrectos.
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
+                    <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 small" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>Usuario o contraseña incorrectos.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                     {% endif %}
-                    
-                    <form method="post">
+
+                    <form method="post" class="needs-validation" novalidate>
                         {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="{{ form.username.id_for_label }}" class="form-label">Usuario</label>
+                        <div class="mb-4">
+                            <label for="{{ form.username.id_for_label }}"
+                                class="form-label fw-bold text-secondary small text-uppercase">Usuario</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                <input type="text" class="form-control" name="username" id="{{ form.username.id_for_label }}" required autofocus>
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i
+                                        class="fas fa-user"></i></span>
+                                <input type="text" class="form-control bg-light border-start-0 ps-0" name="username"
+                                    id="{{ form.username.id_for_label }}" required autofocus
+                                    placeholder="Ingresa tu usuario">
                             </div>
                         </div>
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.password.id_for_label }}" class="form-label">Contraseña</label>
+
+                        <div class="mb-4">
+                            <label for="{{ form.password.id_for_label }}"
+                                class="form-label fw-bold text-secondary small text-uppercase">Contraseña</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                <input type="password" class="form-control" name="password" id="{{ form.password.id_for_label }}" required>
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i
+                                        class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control bg-light border-start-0 ps-0" name="password"
+                                    id="{{ form.password.id_for_label }}" required placeholder="••••••••">
                             </div>
                         </div>
-                        
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+
+                        <div class="d-grid mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg shadow-sm hover-lift">
+                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
                             </button>
                         </div>
-                        
+
                         <input type="hidden" name="next" value="{{ next }}">
                     </form>
                 </div>
-            </div>
-            
-            <div class="text-center mt-3">
-                <small class="text-muted">
-                    Sistema de Gestión de Equipo e Iniciativas
-                </small>
+                <div class="card-footer bg-light border-0 text-center py-3">
+                    <small class="text-muted">
+                        &copy; {% now "Y" %} BOSS App. Todos los derechos reservados.
+                    </small>
+                </div>
             </div>
         </div>
     </div>
@@ -62,25 +75,45 @@
 {% block extra_css %}
 <style>
     body {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
         min-height: 100vh;
     }
-    
-    .navbar, footer {
-        display: none;
+
+    .navbar,
+    footer {
+        display: none !important;
     }
-    
-    .card {
-        border-radius: 1rem;
+
+    .form-control:focus {
+        background-color: #fff;
+        border-color: #4361ee;
+        box-shadow: none;
     }
-    
-    .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
+
+    .input-group-text {
+        border-color: #ced4da;
     }
-    
-    .btn-primary:hover {
-        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+
+    .form-control {
+        border-color: #ced4da;
+    }
+
+    .input-group:focus-within .input-group-text {
+        border-color: #4361ee;
+        background-color: #fff;
+    }
+
+    .input-group:focus-within .form-control {
+        border-color: #4361ee;
+    }
+
+    .hover-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
     }
 </style>
 {% endblock %}

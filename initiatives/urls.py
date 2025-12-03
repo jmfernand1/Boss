@@ -53,6 +53,22 @@ urlpatterns = [
     path('operational/delete/<int:pk>/', views.operational_task_delete, name='operational_task_delete'),
     path('operational/mark-executed/<int:pk>/', views.operational_task_mark_executed, name='operational_task_mark_executed'),
     
+    # CRUD User Stories
+    path('<int:initiative_pk>/stories/create/', views.user_story_create, name='user_story_create'),
+    path('stories/<int:pk>/', views.user_story_detail, name='user_story_detail'),
+    path('stories/edit/<int:pk>/', views.user_story_edit, name='user_story_edit'),
+    path('stories/delete/<int:pk>/', views.user_story_delete, name='user_story_delete'),
+    path('stories/quick-create/', views.quick_user_story_create, name='quick_user_story_create'),
+    
+    # CRUD Tasks
+    path('stories/<int:story_pk>/tasks/create/', views.task_create, name='task_create'),
+    path('tasks/<int:pk>/', views.task_detail, name='task_detail'),
+    path('tasks/edit/<int:pk>/', views.task_edit, name='task_edit'),
+    path('tasks/delete/<int:pk>/', views.task_delete, name='task_delete'),
+    path('tasks/quick-create/', views.quick_task_create, name='quick_task_create'),
+    
     # Vistas auxiliares AJAX
     path('change-status/<int:pk>/', views.initiative_change_status, name='initiative_change_status'),
+    path('stories/change-status/<int:pk>/', views.user_story_change_status, name='user_story_change_status'),
+    path('tasks/change-status/<int:pk>/', views.task_change_status, name='task_change_status'),
 ]

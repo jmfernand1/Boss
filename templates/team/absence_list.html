@@ -32,7 +32,7 @@
                     <select name="employee" class="form-select">
                         <option value="">Todos</option>
                         {% for emp in employees %}
-                            <option value="{{ emp.pk }}" {% if emp.pk|stringformat:"s" == selected_employee %}selected{% endif %}>
+                            <option value="{{ emp.pk }}" {% if emp.pk == selected_employee|add:"0" %}selected{% endif %}>
                                 {{ emp.full_name }}
                             </option>
                         {% endfor %}
@@ -43,7 +43,7 @@
                     <select name="type" class="form-select">
                         <option value="">Todos</option>
                         {% for type in absence_types %}
-                            <option value="{{ type.pk }}" {% if type.pk|stringformat:"s" == selected_type %}selected{% endif %}>
+                            <option value="{{ type.pk }}" {% if type.pk == selected_type|add:"0" %}selected{% endif %}>
                                 {{ type.name }}
                             </option>
                         {% endfor %}

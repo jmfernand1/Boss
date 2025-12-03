@@ -8,13 +8,14 @@ from django.views.decorators.http import require_http_methods
 from datetime import date, timedelta
 from .models import (
     Initiative, Quarter, Sprint, InitiativeUpdate, 
-    InitiativeMetric, OperationalTask, InitiativeType
+    InitiativeMetric, OperationalTask, InitiativeType,
+    UserStory, Task
 )
 from team.models import Employee
 from .forms import (
     InitiativeForm, QuarterForm, InitiativeTypeForm, SprintForm,
     OperationalTaskForm, InitiativeUpdateForm, InitiativeMetricForm,
-    QuickInitiativeForm
+    QuickInitiativeForm, UserStoryForm, TaskForm, QuickUserStoryForm, QuickTaskForm
 )
 
 
@@ -149,6 +150,19 @@ def initiative_detail(request, pk):
     # Métricas
     metrics = initiative.metrics.all().order_by('metric_name')
     
+    # Historias de usuario
+    user_stories = initiative.user_stories.all().select_related('assignee', 'sprint').order_by('-priority', '-created_at')
+    
+    # Estadísticas de historias de usuario
+    story_stats = {
+        'total': user_stories.count(),
+        'backlog': user_stories.filter(status='BACKLOG').count(),
+        'in_progress': user_stories.filter(status='IN_PROGRESS').count(),
+        'done': user_stories.filter(status='DONE').count(),
+        'total_story_points': sum(story.story_points or 0 for story in user_stories),
+        'completed_story_points': sum(story.story_points or 0 for story in user_stories.filter(status='DONE')),
+    }
+    
     # Detalles operativos si aplica
     operational_details = None
     if initiative.is_operational:
@@ -161,6 +175,8 @@ def initiative_detail(request, pk):
         'initiative': initiative,
         'updates': updates,
         'metrics': metrics,
+        'user_stories': user_stories,
+        'story_stats': story_stats,
         'operational_details': operational_details,
         'today': date.today(),
     }
@@ -210,30 +226,71 @@ def operational_tasks(request):
 
 @login_required
 def sprint_board(request):
-    """Tablero de sprint (estilo Kanban)"""
-    # Obtener sprint activo
-    active_sprint = Sprint.objects.filter(is_active=True).first()
-    
-    if active_sprint:
-        # Iniciativas del sprint agrupadas por estado
-        initiatives_by_status = {}
-        for status_code, status_name in Initiative.STATUS_CHOICES:
-            initiatives = Initiative.objects.filter(
-                quarter=active_sprint.quarter,
-                status=status_code
-            ).select_related('owner', 'initiative_type')
-            initiatives_by_status[status_name] = initiatives
+    """Tablero de sprint (estilo Monday.com)"""
+    # Obtener sprint seleccionado o activo
+    selected_sprint_id = request.GET.get('sprint')
+    if selected_sprint_id:
+        active_sprint = get_object_or_404(Sprint, id=selected_sprint_id)
     else:
-        initiatives_by_status = {}
+        active_sprint = Sprint.objects.filter(is_active=True).first()
     
-    # Todos los sprints para navegación
-    sprints = Sprint.objects.all().order_by('-quarter', '-sprint_number')
+    # Obtener todos los sprints para el dropdown
+    sprints = Sprint.objects.select_related('quarter').order_by('-quarter__year', '-quarter__quarter', '-sprint_number')
     
+    # Obtener tareas del sprint activo agrupadas por sprint
+    tasks_by_sprint = {}
+    if active_sprint:
+        # Tareas del sprint activo
+        tasks = Task.objects.filter(
+            user_story__sprint=active_sprint
+        ).select_related(
+            'user_story__initiative', 
+            'assignee__user', 
+            'user_story__initiative__initiative_type'
+        ).order_by('status', '-created_at')
+        
+        tasks_by_sprint[active_sprint] = tasks
+        
+        # Calcular estadísticas del sprint
+        sprint_stats = {
+            'total_tasks': tasks.count(),
+            'done_tasks': tasks.filter(status='DONE').count(),
+            'in_progress_tasks': tasks.filter(status='IN_PROGRESS').count(),
+            'blocked_tasks': tasks.filter(status='BLOCKED').count(),
+            'total_story_points': sum(task.user_story.story_points or 0 for task in tasks),
+        }
+        
+        if sprint_stats['total_tasks'] > 0:
+            sprint_stats['completion_percentage'] = round(
+                (sprint_stats['done_tasks'] / sprint_stats['total_tasks']) * 100, 1
+            )
+        else:
+            sprint_stats['completion_percentage'] = 0
+    else:
+        sprint_stats = {
+            'total_tasks': 0,
+            'done_tasks': 0,
+            'in_progress_tasks': 0,
+            'blocked_tasks': 0,
+            'total_story_points': 0,
+            'completion_percentage': 0,
+        }
+    
+    # Datos para el modal de creación rápida
+    employees = Employee.objects.filter(is_active=True).select_related('user')
+    initiative_types = InitiativeType.objects.all()
+
     context = {
         'active_sprint': active_sprint,
-        'initiatives_by_status': initiatives_by_status,
+        'tasks_by_sprint': tasks_by_sprint,
         'sprints': sprints,
+        'sprint_stats': sprint_stats,
         'today': date.today(),
+        'employees': employees,
+        'initiative_types': initiative_types,
+        'priority_choices': Initiative.PRIORITY_CHOICES,
+        'task_status_choices': Task.STATUS_CHOICES,
+        'task_type_choices': Task.TASK_TYPE_CHOICES,
     }
     
     return render(request, 'initiatives/sprint_board.html', context)
@@ -839,6 +896,7 @@ def initiative_metric_delete(request, pk):
 @login_required
 def operational_task_create(request):
     """Crear nueva tarea operativa"""
+    
     if request.method == 'POST':
         form = OperationalTaskForm(request.POST)
         if form.is_valid():
@@ -847,6 +905,7 @@ def operational_task_create(request):
             return redirect('initiatives:operational_tasks')
     else:
         form = OperationalTaskForm()
+        
         # Pre-seleccionar iniciativa si viene en query params
         initiative_id = request.GET.get('initiative')
         if initiative_id:
@@ -855,11 +914,16 @@ def operational_task_create(request):
             except Initiative.DoesNotExist:
                 pass
     
+    # Verificar que hay iniciativas operativas disponibles
+    operational_count = Initiative.objects.filter(is_operational=True).count()
+    if operational_count == 0:
+        messages.warning(request, 'No hay iniciativas operativas disponibles. Debe crear una iniciativa y marcarla como operativa.')
+    
     return render(request, 'initiatives/operational_task_form.html', {
         'form': form,
         'title': 'Nueva Tarea Operativa',
         'action': 'create',
-        'back_url': reverse('initiatives:operational_tasks')
+        'back_url': reverse('initiatives:operational_tasks'),
     })
 
 
@@ -951,6 +1015,310 @@ def initiative_change_status(request, pk):
             'message': f'Estado cambiado de "{old_status}" a "{initiative.get_status_display()}"',
             'new_status': initiative.get_status_display(),
             'progress': initiative.progress
+        })
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Estado no válido'
+    })
+
+
+# ============================================================================
+# VISTAS CRUD - USER STORIES
+# ============================================================================
+
+@login_required
+def user_story_create(request, initiative_pk):
+    """Crear nueva historia de usuario"""
+    initiative = get_object_or_404(Initiative, pk=initiative_pk)
+    
+    if request.method == 'POST':
+        form = UserStoryForm(request.POST, initiative=initiative)
+        if form.is_valid():
+            user_story = form.save()
+            messages.success(request, f'Historia de usuario "{user_story.title}" creada exitosamente.')
+            return redirect('initiatives:initiative_detail', pk=initiative.pk)
+    else:
+        form = UserStoryForm(initiative=initiative)
+    
+    return render(request, 'initiatives/user_story_form.html', {
+        'form': form,
+        'initiative': initiative,
+        'title': f'Nueva Historia de Usuario - {initiative.title}',
+        'action': 'create',
+        'back_url': reverse('initiatives:initiative_detail', args=[initiative.pk])
+    })
+
+
+@login_required
+def user_story_detail(request, pk):
+    """Detalle de historia de usuario"""
+    user_story = get_object_or_404(UserStory, pk=pk)
+    
+    # Tareas de la historia
+    tasks = user_story.tasks.all().select_related('assignee').order_by('status', '-created_at')
+    
+    # Estadísticas de tareas
+    task_stats = {
+        'total': tasks.count(),
+        'todo': tasks.filter(status='TODO').count(),
+        'in_progress': tasks.filter(status='IN_PROGRESS').count(),
+        'done': tasks.filter(status='DONE').count(),
+        'blocked': tasks.filter(status='BLOCKED').count(),
+        'total_estimated': sum(task.estimated_hours or 0 for task in tasks),
+        'total_actual': sum(task.actual_hours or 0 for task in tasks),
+    }
+    
+    context = {
+        'user_story': user_story,
+        'tasks': tasks,
+        'task_stats': task_stats,
+        'today': date.today(),
+    }
+    
+    return render(request, 'initiatives/user_story_detail.html', context)
+
+
+@login_required
+def user_story_edit(request, pk):
+    """Editar historia de usuario"""
+    user_story = get_object_or_404(UserStory, pk=pk)
+    
+    if request.method == 'POST':
+        form = UserStoryForm(request.POST, instance=user_story)
+        if form.is_valid():
+            user_story = form.save()
+            messages.success(request, f'Historia de usuario "{user_story.title}" actualizada exitosamente.')
+            return redirect('initiatives:user_story_detail', pk=user_story.pk)
+    else:
+        form = UserStoryForm(instance=user_story)
+    
+    return render(request, 'initiatives/user_story_form.html', {
+        'form': form,
+        'user_story': user_story,
+        'initiative': user_story.initiative,
+        'title': f'Editar - {user_story.title}',
+        'action': 'edit',
+        'back_url': reverse('initiatives:user_story_detail', args=[user_story.pk])
+    })
+
+
+@login_required
+def user_story_delete(request, pk):
+    """Eliminar historia de usuario"""
+    user_story = get_object_or_404(UserStory, pk=pk)
+    initiative = user_story.initiative
+    
+    if request.method == 'POST':
+        story_title = user_story.title
+        user_story.delete()
+        messages.success(request, f'Historia de usuario "{story_title}" eliminada exitosamente.')
+        return redirect('initiatives:initiative_detail', pk=initiative.pk)
+    
+    return render(request, 'initiatives/user_story_confirm_delete.html', {
+        'user_story': user_story,
+        'initiative': initiative
+    })
+
+
+@login_required
+def quick_user_story_create(request):
+    """Crear historia de usuario rápida (AJAX)"""
+    if request.method == 'POST':
+        initiative_id = request.POST.get('initiative_id')
+        initiative = get_object_or_404(Initiative, pk=initiative_id)
+        
+        form = QuickUserStoryForm(request.POST)
+        if form.is_valid():
+            try:
+                user_story = form.save(initiative)
+                messages.success(request, f'Historia de usuario "{user_story.title}" creada exitosamente.')
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Historia de usuario "{user_story.title}" creada exitosamente.',
+                    'user_story_id': user_story.pk,
+                    'redirect_url': reverse('initiatives:user_story_detail', args=[user_story.pk])
+                })
+            except Exception as e:
+                return JsonResponse({
+                    'success': False,
+                    'message': str(e)
+                })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Error en el formulario',
+                'errors': form.errors
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+
+@login_required
+@require_http_methods(["POST"])
+def user_story_change_status(request, pk):
+    """Cambiar estado de historia de usuario (AJAX)"""
+    user_story = get_object_or_404(UserStory, pk=pk)
+    new_status = request.POST.get('status')
+    
+    if new_status in dict(UserStory.STATUS_CHOICES):
+        old_status = user_story.get_status_display()
+        user_story.status = new_status
+        user_story.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Estado cambiado de "{old_status}" a "{user_story.get_status_display()}"',
+            'new_status': user_story.get_status_display(),
+            'progress': user_story.progress_percentage
+        })
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Estado no válido'
+    })
+
+
+# ============================================================================
+# VISTAS CRUD - TASKS
+# ============================================================================
+
+@login_required
+def task_create(request, story_pk):
+    """Crear nueva tarea"""
+    user_story = get_object_or_404(UserStory, pk=story_pk)
+    
+    if request.method == 'POST':
+        form = TaskForm(request.POST, user_story=user_story)
+        if form.is_valid():
+            task = form.save()
+            messages.success(request, f'Tarea "{task.title}" creada exitosamente.')
+            return redirect('initiatives:user_story_detail', pk=user_story.pk)
+    else:
+        form = TaskForm(user_story=user_story)
+    
+    return render(request, 'initiatives/task_form.html', {
+        'form': form,
+        'user_story': user_story,
+        'title': f'Nueva Tarea - {user_story.title}',
+        'action': 'create',
+        'back_url': reverse('initiatives:user_story_detail', args=[user_story.pk])
+    })
+
+
+@login_required
+def task_detail(request, pk):
+    """Detalle de tarea"""
+    task = get_object_or_404(Task, pk=pk)
+    
+    # Estadísticas de la historia de usuario
+    user_story = task.user_story
+    total_tasks = user_story.tasks.count()
+    completed_tasks = user_story.tasks.filter(status='DONE').count()
+    
+    context = {
+        'task': task,
+        'user_story': user_story,
+        'initiative': user_story.initiative,
+        'total_tasks': total_tasks,
+        'completed_tasks': completed_tasks,
+        'today': date.today(),
+    }
+    
+    return render(request, 'initiatives/task_detail.html', context)
+
+
+@login_required
+def task_edit(request, pk):
+    """Editar tarea"""
+    task = get_object_or_404(Task, pk=pk)
+    
+    if request.method == 'POST':
+        form = TaskForm(request.POST, instance=task)
+        if form.is_valid():
+            task = form.save()
+            messages.success(request, f'Tarea "{task.title}" actualizada exitosamente.')
+            return redirect('initiatives:task_detail', pk=task.pk)
+    else:
+        form = TaskForm(instance=task)
+    
+    return render(request, 'initiatives/task_form.html', {
+        'form': form,
+        'task': task,
+        'user_story': task.user_story,
+        'title': f'Editar - {task.title}',
+        'action': 'edit',
+        'back_url': reverse('initiatives:task_detail', args=[task.pk])
+    })
+
+
+@login_required
+def task_delete(request, pk):
+    """Eliminar tarea"""
+    task = get_object_or_404(Task, pk=pk)
+    user_story = task.user_story
+    
+    if request.method == 'POST':
+        task_title = task.title
+        task.delete()
+        messages.success(request, f'Tarea "{task_title}" eliminada exitosamente.')
+        return redirect('initiatives:user_story_detail', pk=user_story.pk)
+    
+    return render(request, 'initiatives/task_confirm_delete.html', {
+        'task': task,
+        'user_story': user_story
+    })
+
+
+@login_required
+def quick_task_create(request):
+    """Crear tarea rápida (AJAX)"""
+    if request.method == 'POST':
+        story_id = request.POST.get('user_story_id')
+        user_story = get_object_or_404(UserStory, pk=story_id)
+        
+        form = QuickTaskForm(request.POST)
+        if form.is_valid():
+            try:
+                task = form.save(user_story)
+                messages.success(request, f'Tarea "{task.title}" creada exitosamente.')
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Tarea "{task.title}" creada exitosamente.',
+                    'task_id': task.pk,
+                    'redirect_url': reverse('initiatives:task_detail', args=[task.pk])
+                })
+            except Exception as e:
+                return JsonResponse({
+                    'success': False,
+                    'message': str(e)
+                })
+        else:
+            return JsonResponse({
+                'success': False,
+                'message': 'Error en el formulario',
+                'errors': form.errors
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+
+@login_required
+@require_http_methods(["POST"])
+def task_change_status(request, pk):
+    """Cambiar estado de tarea (AJAX)"""
+    task = get_object_or_404(Task, pk=pk)
+    new_status = request.POST.get('status')
+    
+    if new_status in dict(Task.STATUS_CHOICES):
+        old_status = task.get_status_display()
+        task.status = new_status
+        task.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Estado cambiado de "{old_status}" a "{task.get_status_display()}"',
+            'new_status': task.get_status_display()
         })
     
     return JsonResponse({

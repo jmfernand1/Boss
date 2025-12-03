@@ -244,3 +244,152 @@ class InitiativeMetric(models.Model):
         if self.target_value == 0:
             return 0
         return round((self.current_value / self.target_value) * 100, 2)
+
+
+class UserStory(models.Model):
+    """Historias de usuario asociadas a iniciativas (épicas)"""
+    STATUS_CHOICES = [
+        ('BACKLOG', 'Backlog'),
+        ('READY', 'Listo para Sprint'),
+        ('IN_PROGRESS', 'En Progreso'),
+        ('IN_REVIEW', 'En Revisión'),
+        ('TESTING', 'Pruebas'),
+        ('DONE', 'Terminado'),
+        ('CANCELLED', 'Cancelado'),
+    ]
+    
+    PRIORITY_CHOICES = [
+        ('LOW', 'Baja'),
+        ('MEDIUM', 'Media'),
+        ('HIGH', 'Alta'),
+        ('CRITICAL', 'Crítica'),
+    ]
+    
+    STORY_POINTS_CHOICES = [
+        (1, '1 - Muy Pequeña'),
+        (2, '2 - Pequeña'),
+        (3, '3 - Mediana'),
+        (5, '5 - Grande'),
+        (8, '8 - Muy Grande'),
+        (13, '13 - Extra Grande'),
+        (21, '21 - XXL'),
+    ]
+    
+    initiative = models.ForeignKey(Initiative, on_delete=models.CASCADE, related_name='user_stories', verbose_name='Iniciativa (Épica)')
+    title = models.CharField(max_length=200, verbose_name='Título')
+    description = models.TextField(verbose_name='Descripción')
+    acceptance_criteria = models.TextField(blank=True, verbose_name='Criterios de Aceptación')
+    story_points = models.IntegerField(choices=STORY_POINTS_CHOICES, null=True, blank=True, verbose_name='Story Points')
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='MEDIUM', verbose_name='Prioridad')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='BACKLOG', verbose_name='Estado')
+    assignee = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_stories', verbose_name='Asignado a')
+    sprint = models.ForeignKey(Sprint, on_delete=models.SET_NULL, null=True, blank=True, related_name='user_stories', verbose_name='Sprint')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    started_at = models.DateTimeField(null=True, blank=True, verbose_name='Iniciado el')
+    completed_at = models.DateTimeField(null=True, blank=True, verbose_name='Completado el')
+    
+    class Meta:
+        verbose_name = 'Historia de Usuario'
+        verbose_name_plural = 'Historias de Usuario'
+        ordering = ['-priority', '-created_at']
+    
+    def __str__(self):
+        return f"US-{self.pk}: {self.title}"
+    
+    @property
+    def progress_percentage(self):
+        """Calcula el porcentaje de progreso basado en las tareas"""
+        total_tasks = self.tasks.count()
+        if total_tasks == 0:
+            return 0 if self.status != 'DONE' else 100
+        
+        completed_tasks = self.tasks.filter(status='DONE').count()
+        return round((completed_tasks / total_tasks) * 100, 2)
+    
+    def save(self, *args, **kwargs):
+        from django.utils import timezone
+        
+        # Actualizar fechas según estado
+        if self.status == 'IN_PROGRESS' and not self.started_at:
+            self.started_at = timezone.now()
+        elif self.status == 'DONE' and not self.completed_at:
+            self.completed_at = timezone.now()
+        elif self.status not in ['DONE'] and self.completed_at:
+            self.completed_at = None
+        
+        super().save(*args, **kwargs)
+        
+        # Actualizar progreso de la iniciativa padre
+        self.update_initiative_progress()
+    
+    def update_initiative_progress(self):
+        """Actualiza el progreso de la iniciativa basado en las historias de usuario"""
+        if self.initiative:
+            stories = self.initiative.user_stories.all()
+            if stories.exists():
+                total_progress = sum(story.progress_percentage for story in stories)
+                avg_progress = round(total_progress / stories.count(), 2)
+                self.initiative.progress = min(100, avg_progress)
+                self.initiative.save(update_fields=['progress'])
+
+
+class Task(models.Model):
+    """Tareas específicas dentro de las historias de usuario"""
+    STATUS_CHOICES = [
+        ('TODO', 'Por Hacer'),
+        ('IN_PROGRESS', 'En Progreso'),
+        ('IN_REVIEW', 'En Revisión'),
+        ('DONE', 'Terminado'),
+        ('BLOCKED', 'Bloqueado'),
+    ]
+    
+    TASK_TYPE_CHOICES = [
+        ('DEVELOPMENT', 'Desarrollo'),
+        ('TESTING', 'Pruebas'),
+        ('DESIGN', 'Diseño'),
+        ('RESEARCH', 'Investigación'),
+        ('DOCUMENTATION', 'Documentación'),
+        ('REVIEW', 'Revisión'),
+        ('DEPLOYMENT', 'Despliegue'),
+        ('OTHER', 'Otro'),
+    ]
+    
+    user_story = models.ForeignKey(UserStory, on_delete=models.CASCADE, related_name='tasks', verbose_name='Historia de Usuario')
+    title = models.CharField(max_length=200, verbose_name='Título')
+    description = models.TextField(blank=True, verbose_name='Descripción')
+    task_type = models.CharField(max_length=20, choices=TASK_TYPE_CHOICES, default='DEVELOPMENT', verbose_name='Tipo de Tarea')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='TODO', verbose_name='Estado')
+    assignee = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_tasks', verbose_name='Asignado a')
+    estimated_hours = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name='Horas Estimadas')
+    actual_hours = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name='Horas Reales')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    started_at = models.DateTimeField(null=True, blank=True, verbose_name='Iniciado el')
+    completed_at = models.DateTimeField(null=True, blank=True, verbose_name='Completado el')
+    blocked_reason = models.TextField(blank=True, verbose_name='Razón del Bloqueo')
+    
+    class Meta:
+        verbose_name = 'Tarea'
+        verbose_name_plural = 'Tareas'
+        ordering = ['status', '-created_at']
+    
+    def __str__(self):
+        return f"T-{self.pk}: {self.title}"
+    
+    def save(self, *args, **kwargs):
+        from django.utils import timezone
+        
+        # Actualizar fechas según estado
+        if self.status == 'IN_PROGRESS' and not self.started_at:
+            self.started_at = timezone.now()
+        elif self.status == 'DONE' and not self.completed_at:
+            self.completed_at = timezone.now()
+        elif self.status not in ['DONE'] and self.completed_at:
+            self.completed_at = None
+        
+        super().save(*args, **kwargs)
+        
+        # Actualizar progreso de la historia de usuario padre
+        if self.user_story:
+            self.user_story.save()  # Esto activará update_initiative_progress

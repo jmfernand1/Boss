@@ -1,0 +1,218 @@
+{% extends 'initiatives/form_base.html' %}
+
+{% block title %}
+{% if action == 'create' %}
+    Nueva Tarea
+{% else %}
+    Editar {{ form.instance.title }}
+{% endif %}
+{% endblock %}
+
+{% block form_content %}
+<div class="row">
+    <!-- Información Básica -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-tasks text-warning"></i> Información Básica
+        </h5>
+    </div>
+    
+    <!-- User Story (hidden if preset) -->
+    {% if form.user_story.field.widget.input_type == 'hidden' %}
+        {{ form.user_story }}
+        <div class="col-12 mb-3">
+            <div class="alert alert-info">
+                <i class="fas fa-book"></i> 
+                <strong>Historia de Usuario:</strong> {{ user_story.title }}
+                <br>
+                <small class="text-muted">Épica: {{ user_story.initiative.title }}</small>
+            </div>
+        </div>
+    {% else %}
+        <div class="col-12 mb-3">
+            <label for="{{ form.user_story.id_for_label }}" class="form-label">
+                {{ form.user_story.label }}
+                {% if form.user_story.field.required %}
+                    <span class="text-danger">*</span>
+                {% endif %}
+            </label>
+            {{ form.user_story }}
+            {% if form.user_story.help_text %}
+                <div class="form-text">{{ form.user_story.help_text }}</div>
+            {% endif %}
+            {% if form.user_story.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.user_story.errors|join:", " }}
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    <div class="col-12 mb-3">
+        <label for="{{ form.title.id_for_label }}" class="form-label">
+            {{ form.title.label }}
+            {% if form.title.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.title }}
+        <div class="form-text">Describe brevemente qué debe hacerse en esta tarea</div>
+        {% if form.title.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.title.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-12 mb-4">
+        <label for="{{ form.description.id_for_label }}" class="form-label">
+            {{ form.description.label }}
+        </label>
+        {{ form.description }}
+        <div class="form-text">Detalles adicionales sobre cómo realizar la tarea</div>
+        {% if form.description.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.description.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Clasificación -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-tag text-primary"></i> Clasificación y Estado
+        </h5>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.task_type.id_for_label }}" class="form-label">
+            {{ form.task_type.label }}
+            {% if form.task_type.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.task_type }}
+        {% if form.task_type.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.task_type.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.status.id_for_label }}" class="form-label">
+            {{ form.status.label }}
+            {% if form.status.field.required %}
+                <span class="text-danger">*</span>
+            {% endif %}
+        </label>
+        {{ form.status }}
+        {% if form.status.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.status.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="col-12 mb-3">
+        <label for="{{ form.assignee.id_for_label }}" class="form-label">
+            {{ form.assignee.label }}
+        </label>
+        {{ form.assignee }}
+        <div class="form-text">Persona responsable de ejecutar esta tarea</div>
+        {% if form.assignee.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.assignee.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Estimación -->
+    <div class="col-12">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-clock text-info"></i> Estimación de Tiempo
+        </h5>
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.estimated_hours.id_for_label }}" class="form-label">
+            {{ form.estimated_hours.label }}
+        </label>
+        {{ form.estimated_hours }}
+        <div class="form-text">Tiempo estimado para completar la tarea</div>
+        {% if form.estimated_hours.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.estimated_hours.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+
+    {% if action == 'edit' and form.instance.pk %}
+    <div class="col-md-6 mb-3">
+        <label for="{{ form.actual_hours.id_for_label }}" class="form-label">
+            {{ form.actual_hours.label }}
+        </label>
+        {{ form.actual_hours }}
+        <div class="form-text">Tiempo real invertido en la tarea</div>
+        {% if form.actual_hours.errors %}
+            <div class="invalid-feedback d-block">
+                {{ form.actual_hours.errors|join:", " }}
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Bloqueos -->
+    <div class="col-12" id="blocked-section" style="{% if form.instance.status != 'BLOCKED' %}display: none;{% endif %}">
+        <h5 class="border-bottom pb-2 mb-4">
+            <i class="fas fa-ban text-danger"></i> Información de Bloqueo
+        </h5>
+        
+        <div class="col-12 mb-3">
+            <label for="{{ form.blocked_reason.id_for_label }}" class="form-label">
+                {{ form.blocked_reason.label }}
+            </label>
+            {{ form.blocked_reason }}
+            <div class="form-text">Explica por qué está bloqueada la tarea y qué se necesita para desbloquearla</div>
+            {% if form.blocked_reason.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.blocked_reason.errors|join:", " }}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="text-end mt-4">
+    <button type="submit" class="btn btn-success">
+        <i class="fas fa-save"></i> 
+        {% if action == 'create' %}
+            Crear Tarea
+        {% else %}
+            Guardar Cambios
+        {% endif %}
+    </button>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusSelect = document.getElementById('{{ form.status.id_for_label }}');
+    const blockedSection = document.getElementById('blocked-section');
+    const blockedReasonField = document.getElementById('{{ form.blocked_reason.id_for_label }}');
+    
+    function toggleBlockedSection() {
+        if (statusSelect.value === 'BLOCKED') {
+            blockedSection.style.display = 'block';
+            blockedReasonField.required = true;
+        } else {
+            blockedSection.style.display = 'none';
+            blockedReasonField.required = false;
+            blockedReasonField.value = '';
+        }
+    }
+    
+    statusSelect.addEventListener('change', toggleBlockedSection);
+    toggleBlockedSection(); // Initialize on page load
+});
+</script>
+{% endblock %}

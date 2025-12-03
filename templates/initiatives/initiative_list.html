@@ -3,226 +3,255 @@
 {% block title %}Lista de Iniciativas{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row mb-4">
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4 fade-in">
         <div class="col-md-8">
-            <h1><i class="fas fa-list"></i> Lista de Iniciativas</h1>
+            <h1 class="display-5 fw-bold text-primary mb-1">
+                <i class="fas fa-list me-2"></i>Lista de Iniciativas
+            </h1>
+            <p class="text-muted lead mb-0">Gestione y monitoree el progreso de las iniciativas.</p>
         </div>
-        <div class="col-md-4 text-end">
-            <a href="{% url 'initiatives:dashboard' %}" class="btn btn-secondary me-2">
-                <i class="fas fa-arrow-left"></i> Dashboard
+        <div class="col-md-4 text-end d-flex align-items-center justify-content-end gap-2">
+            <a href="{% url 'initiatives:dashboard' %}" class="btn btn-light text-secondary shadow-sm">
+                <i class="fas fa-arrow-left me-2"></i>Dashboard
             </a>
-            <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
-                <i class="fas fa-plus"></i> Nueva Iniciativa
+            <a href="#" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#createModal">
+                <i class="fas fa-plus me-2"></i>Nueva Iniciativa
             </a>
         </div>
     </div>
 
     <!-- Filtros -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-filter"></i> Filtros</h5>
+    <div class="card border-0 shadow-sm mb-4 fade-in" style="animation-delay: 0.1s;">
+        <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+            <h5 class="mb-0 text-primary fw-bold"><i class="fas fa-filter me-2"></i>Filtros</h5>
         </div>
-        <div class="card-body">
+        <div class="card-body p-4">
             <form method="get" class="row g-3">
                 <div class="col-md-2">
-                    <label for="quarter" class="form-label">Periodo (Q)</label>
+                    <label for="quarter" class="form-label small text-uppercase text-muted fw-bold">Periodo (Q)</label>
                     <select name="quarter" id="quarter" class="form-select">
                         <option value="">Todos</option>
                         {% for q in quarters %}
-                            <option value="{{ q.id }}" {% if selected_quarter == q.id|stringformat:"s" %}selected{% endif %}>
-                                {{ q }}
-                            </option>
+                        <option value="{{ q.id }}" {% if selected_quarter|add:"0" == q.id %}selected{% endif %}>
+                            {{ q }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label for="status" class="form-label">Estado</label>
+                    <label for="status" class="form-label small text-uppercase text-muted fw-bold">Estado</label>
                     <select name="status" id="status" class="form-select">
                         <option value="">Todos</option>
                         {% for code, name in status_choices %}
-                            <option value="{{ code }}" {% if selected_status == code %}selected{% endif %}>
-                                {{ name }}
-                            </option>
+                        <option value="{{ code }}" {% if selected_status == code %}selected{% endif %}>
+                            {{ name }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label for="priority" class="form-label">Prioridad</label>
+                    <label for="priority" class="form-label small text-uppercase text-muted fw-bold">Prioridad</label>
                     <select name="priority" id="priority" class="form-select">
                         <option value="">Todas</option>
                         {% for code, name in priority_choices %}
-                            <option value="{{ code }}" {% if selected_priority == code %}selected{% endif %}>
-                                {{ name }}
-                            </option>
+                        <option value="{{ code }}" {% if selected_priority == code %}selected{% endif %}>
+                            {{ name }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label for="owner" class="form-label">Responsable</label>
+                    <label for="owner" class="form-label small text-uppercase text-muted fw-bold">Responsable</label>
                     <select name="owner" id="owner" class="form-select">
                         <option value="">Todos</option>
                         {% for employee in employees %}
-                            <option value="{{ employee.id }}" {% if selected_owner == employee.id|stringformat:"s" %}selected{% endif %}>
-                                {{ employee.full_name }}
-                            </option>
+                        <option value="{{ employee.id }}" {% if selected_owner|add:"0" == employee.id %}selected{% endif %}>
+                            {{ employee.full_name }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label for="type" class="form-label">Tipo</label>
+                    <label for="type" class="form-label small text-uppercase text-muted fw-bold">Tipo</label>
                     <select name="type" id="type" class="form-select">
                         <option value="">Todos</option>
                         {% for type in initiative_types %}
-                            <option value="{{ type.id }}" {% if selected_type == type.id|stringformat:"s" %}selected{% endif %}>
-                                {{ type.name }}
-                            </option>
+                        <option value="{{ type.id }}" {% if selected_type|add:"0" == type.id %}selected{% endif %}>
+                            {{ type.name }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label for="search" class="form-label">Buscar</label>
-                    <input type="text" name="search" id="search" class="form-control" 
-                           value="{{ search }}" placeholder="Título o descripción...">
+                    <label for="search" class="form-label small text-uppercase text-muted fw-bold">Buscar</label>
+                    <input type="text" name="search" id="search" class="form-control" value="{{ search }}"
+                        placeholder="Título...">
                 </div>
-                <div class="col-12">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search"></i> Filtrar
-                    </button>
-                    <a href="{% url 'initiatives:initiative_list' %}" class="btn btn-secondary ms-2">
-                        <i class="fas fa-times"></i> Limpiar
+                <div class="col-12 d-flex justify-content-end gap-2 mt-3">
+                    <a href="{% url 'initiatives:initiative_list' %}" class="btn btn-light text-secondary">
+                        <i class="fas fa-times me-2"></i>Limpiar
                     </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Filtrar
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Lista de Iniciativas -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">
-                <i class="fas fa-tasks"></i> Iniciativas 
-                <span class="badge bg-secondary">{{ initiatives.count }}</span>
+    <div class="card border-0 shadow-lg fade-in" style="animation-delay: 0.2s;">
+        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-dark">
+                <i class="fas fa-tasks me-2 text-primary"></i>Iniciativas
             </h5>
+            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">{{ initiatives.count }}
+                Total</span>
         </div>
         <div class="card-body p-0">
             {% if initiatives %}
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Título</th>
-                                <th>Tipo</th>
-                                <th>Responsable</th>
-                                <th>Estado</th>
-                                <th>Prioridad</th>
-                                <th>Progreso</th>
-                                <th>Fecha Objetivo</th>
-                                <th>Periodo</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for initiative in initiatives %}
-                            <tr class="{% if initiative.status == 'BLOCKED' %}table-danger{% elif initiative.status == 'COMPLETED' %}table-success{% endif %}">
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        {% if initiative.is_operational %}
-                                            <i class="fas fa-cogs text-warning me-2" title="Operativo"></i>
-                                        {% endif %}
-                                        <div>
-                                            <strong>{{ initiative.title }}</strong>
-                                            {% if initiative.description %}
-                                                <br><small class="text-muted">{{ initiative.description|truncatewords:10 }}</small>
-                                            {% endif %}
-                                        </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3">Título</th>
+                            <th class="py-3">Tipo</th>
+                            <th class="py-3">Responsable</th>
+                            <th class="py-3">Estado</th>
+                            <th class="py-3">Prioridad</th>
+                            <th class="py-3" style="width: 15%;">Progreso</th>
+                            <th class="py-3">Fecha Objetivo</th>
+                            <th class="py-3">Periodo</th>
+                            <th class="pe-4 py-3 text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for initiative in initiatives %}
+                        <tr
+                            class="{% if initiative.status == 'BLOCKED' %}bg-danger bg-opacity-10{% elif initiative.status == 'COMPLETED' %}bg-success bg-opacity-10{% endif %}">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    {% if initiative.is_operational %}
+                                    <div class="me-3 text-warning" data-bs-toggle="tooltip" title="Operativo">
+                                        <i class="fas fa-cogs"></i>
                                     </div>
-                                </td>
-                                <td>
-                                    <span class="badge" style="background-color: {{ initiative.initiative_type.color }};">
-                                        {{ initiative.initiative_type.name }}
-                                    </span>
-                                </td>
-                                <td>{{ initiative.owner.full_name }}</td>
-                                <td>
-                                    {% if initiative.status == 'IN_PROGRESS' %}
-                                        <span class="badge bg-success">En Progreso</span>
-                                    {% elif initiative.status == 'COMPLETED' %}
-                                        <span class="badge bg-info">Completado</span>
-                                    {% elif initiative.status == 'BLOCKED' %}
-                                        <span class="badge bg-danger">Bloqueado</span>
-                                    {% elif initiative.status == 'PLANNED' %}
-                                        <span class="badge bg-primary">Planeado</span>
-                                    {% elif initiative.status == 'CANCELLED' %}
-                                        <span class="badge bg-dark">Cancelado</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">{{ initiative.get_status_display }}</span>
                                     {% endif %}
-                                </td>
-                                <td>
-                                    {% if initiative.priority == 'CRITICAL' %}
-                                        <span class="badge bg-danger">Crítica</span>
-                                    {% elif initiative.priority == 'HIGH' %}
-                                        <span class="badge bg-warning">Alta</span>
-                                    {% elif initiative.priority == 'MEDIUM' %}
-                                        <span class="badge bg-primary">Media</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">Baja</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="progress me-2" style="width: 60px; height: 10px;">
-                                            <div class="progress-bar 
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ initiative.title }}</div>
+                                        {% if initiative.description %}
+                                        <div class="small text-muted text-truncate" style="max-width: 200px;">{{
+                                            initiative.description }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill fw-normal"
+                                    style="background-color: {{ initiative.initiative_type.color }}; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
+                                    {{ initiative.initiative_type.name }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-xs bg-primary bg-opacity-10 text-primary rounded-circle me-2 small fw-bold d-flex align-items-center justify-content-center"
+                                        style="width: 24px; height: 24px;">
+                                        {{ initiative.owner.first_name|first }}{{ initiative.owner.last_name|first }}
+                                    </div>
+                                    <span class="small">{{ initiative.owner.full_name }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                {% if initiative.status == 'BACKLOG' %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">Backlog</span>
+                                {% elif initiative.status == 'PLANNED' %}
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">Planeado</span>
+                                {% elif initiative.status == 'IN_PROGRESS' %}
+                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill">En Progreso</span>
+                                {% elif initiative.status == 'BLOCKED' %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill">Bloqueado</span>
+                                {% elif initiative.status == 'COMPLETED' %}
+                                <span class="badge bg-info bg-opacity-10 text-info rounded-pill">Completado</span>
+                                {% elif initiative.status == 'CANCELLED' %}
+                                <span class="badge bg-dark bg-opacity-10 text-dark rounded-pill">Cancelado</span>
+                                {% else %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill">{{ initiative.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if initiative.priority == 'CRITICAL' %}
+                                <span class="badge bg-danger rounded-pill">Crítica</span>
+                                {% elif initiative.priority == 'HIGH' %}
+                                <span class="badge bg-warning text-dark rounded-pill">Alta</span>
+                                {% elif initiative.priority == 'MEDIUM' %}
+                                <span class="badge bg-primary rounded-pill">Media</span>
+                                {% else %}
+                                <span class="badge bg-secondary rounded-pill">Baja</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 me-2"
+                                        style="height: 6px; background-color: #e9ecef;">
+                                        <div class="progress-bar rounded-pill 
                                                 {% if initiative.progress < 25 %}bg-danger
                                                 {% elif initiative.progress < 50 %}bg-warning
                                                 {% elif initiative.progress < 75 %}bg-info
-                                                {% else %}bg-success{% endif %}" 
-                                                style="width: {{ initiative.progress }}%">
-                                            </div>
+                                                {% else %}bg-success{% endif %}"
+                                            style="width: {{ initiative.progress }}%">
                                         </div>
-                                        <small>{{ initiative.progress }}%</small>
                                     </div>
-                                </td>
-                                <td>
-                                    {% if initiative.target_date %}
-                                        {{ initiative.target_date|date:"d/m/Y" }}
-                                        {% if initiative.target_date < today and initiative.status != 'COMPLETED' %}
-                                            <i class="fas fa-exclamation-triangle text-danger ms-1" title="Vencido"></i>
-                                        {% endif %}
-                                    {% else %}
-                                        <span class="text-muted">No definida</span>
+                                    <small class="fw-bold text-muted">{{ initiative.progress }}%</small>
+                                </div>
+                            </td>
+                            <td>
+                                {% if initiative.target_date %}
+                                <span
+                                    class="{% if initiative.target_date < today and initiative.status != 'COMPLETED' %}text-danger fw-bold{% endif %}">
+                                    {{ initiative.target_date|date:"d M" }}
+                                </span>
+                                {% if initiative.target_date < today and initiative.status != 'COMPLETED' %} <i
+                                    class="fas fa-exclamation-circle text-danger ms-1" title="Vencido"></i>
                                     {% endif %}
-                                </td>
-                                <td>{{ initiative.quarter }}</td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="{% url 'initiatives:initiative_detail' initiative.pk %}" 
-                                           class="btn btn-sm btn-outline-primary" title="Ver detalles">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="{% url 'initiatives:initiative_edit' initiative.pk %}" class="btn btn-sm btn-outline-secondary" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a href="{% url 'initiatives:initiative_delete' initiative.pk %}" class="btn btn-sm btn-outline-danger" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                                    {% else %}
+                                    <span class="text-muted small">-</span>
+                                    {% endif %}
+                            </td>
+                            <td><span class="badge bg-light text-dark border">{{ initiative.quarter }}</span></td>
+                            <td class="pe-4 text-end">
+                                <div class="btn-group shadow-sm" role="group">
+                                    <a href="{% url 'initiatives:initiative_detail' initiative.pk %}"
+                                        class="btn btn-sm btn-light text-primary" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'initiatives:initiative_edit' initiative.pk %}"
+                                        class="btn btn-sm btn-light text-secondary" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'initiatives:initiative_delete' initiative.pk %}"
+                                        class="btn btn-sm btn-light text-danger" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
-                    <h5>No se encontraron iniciativas</h5>
-                    <p class="text-muted">No hay iniciativas que coincidan con los filtros seleccionados.</p>
-                    <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
-                        <i class="fas fa-plus"></i> Crear Primera Iniciativa
-                    </a>
+            <div class="text-center py-5">
+                <div class="avatar bg-light rounded-circle p-4 mb-3 mx-auto"
+                    style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-tasks fa-2x text-muted opacity-50"></i>
                 </div>
+                <h5 class="text-muted">No se encontraron iniciativas</h5>
+                <p class="text-muted small mb-4">No hay iniciativas que coincidan con los filtros seleccionados.</p>
+                <a href="#" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#createModal">
+                    <i class="fas fa-plus me-2"></i>Crear Primera Iniciativa
+                </a>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -230,54 +259,61 @@
 
 <!-- Modal para crear iniciativa -->
 <div class="modal fade" id="createModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-plus"></i> Nueva Iniciativa</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-plus me-2"></i>Nueva Iniciativa</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-4">
                 <form id="quickInitiativeForm">
                     {% csrf_token %}
-                    <div class="row">
-                        <div class="col-12 mb-3">
-                            <label for="title" class="form-label">Título <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="title" name="title" required>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="title" class="form-label fw-bold text-secondary">Título <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" required
+                                placeholder="Nombre de la iniciativa">
                         </div>
-                        <div class="col-12 mb-3">
-                            <label for="description" class="form-label">Descripción</label>
-                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        <div class="col-12">
+                            <label for="description" class="form-label fw-bold text-secondary">Descripción</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"
+                                placeholder="Breve descripción..."></textarea>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="initiative_type" class="form-label">Tipo <span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            <label for="initiative_type" class="form-label fw-bold text-secondary">Tipo <span
+                                    class="text-danger">*</span></label>
                             <select class="form-select" id="initiative_type" name="initiative_type" required>
                                 <option value="">Seleccionar tipo...</option>
                                 {% for type in initiative_types %}
-                                    <option value="{{ type.id }}">{{ type.name }}</option>
+                                <option value="{{ type.id }}">{{ type.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="owner" class="form-label">Responsable <span class="text-danger">*</span></label>
+                        <div class="col-md-6">
+                            <label for="owner" class="form-label fw-bold text-secondary">Responsable <span
+                                    class="text-danger">*</span></label>
                             <select class="form-select" id="owner" name="owner" required>
                                 <option value="">Seleccionar responsable...</option>
                                 {% for employee in employees %}
-                                    <option value="{{ employee.id }}">{{ employee.full_name }}</option>
+                                <option value="{{ employee.id }}">{{ employee.full_name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="priority" class="form-label">Prioridad</label>
+                        <div class="col-md-6">
+                            <label for="priority" class="form-label fw-bold text-secondary">Prioridad</label>
                             <select class="form-select" id="priority" name="priority">
                                 {% for code, name in priority_choices %}
-                                    <option value="{{ code }}" {% if code == 'MEDIUM' %}selected{% endif %}>{{ name }}</option>
+                                <option value="{{ code }}" {% if code == 'MEDIUM' %}selected{% endif %}>{{ name }}
+                                </option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-6 d-flex align-items-center">
                             <div class="form-check mt-4">
-                                <input class="form-check-input" type="checkbox" id="is_operational" name="is_operational">
-                                <label class="form-check-label" for="is_operational">
+                                <input class="form-check-input" type="checkbox" id="is_operational"
+                                    name="is_operational">
+                                <label class="form-check-label fw-medium" for="is_operational">
                                     ¿Es operativo?
                                 </label>
                             </div>
@@ -285,10 +321,10 @@
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="createInitiative()">
-                    <i class="fas fa-save"></i> Crear Iniciativa
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-light text-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary shadow-sm" onclick="createInitiative()">
+                    <i class="fas fa-save me-2"></i>Crear Iniciativa
                 </button>
             </div>
         </div>
@@ -298,106 +334,112 @@
 
 {% block extra_js %}
 <script>
-function createInitiative() {
-    const form = document.getElementById('quickInitiativeForm');
-    const formData = new FormData(form);
-    
-    // Validación básica
-    if (!formData.get('title') || !formData.get('initiative_type') || !formData.get('owner')) {
-        alert('Por favor, completa todos los campos requeridos.');
-        return;
-    }
-    
-    // Deshabilitar botón para evitar doble envío
-    const submitBtn = document.querySelector('#createModal .btn-primary');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
-    
-    // Obtener CSRF token
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    
-    // Enviar datos vía AJAX
-    fetch('{% url "initiatives:quick_initiative_create" %}', {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrfToken,
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Mostrar mensaje de éxito
-            showAlert('success', data.message);
-            
-            // Cerrar modal y limpiar formulario
-            const modal = bootstrap.Modal.getInstance(document.getElementById('createModal'));
-            modal.hide();
-            form.reset();
-            
-            // Recargar la página para mostrar la nueva iniciativa
-            setTimeout(() => {
-                if (data.redirect_url) {
-                    window.location.href = data.redirect_url;
-                } else {
-                    window.location.reload();
-                }
-            }, 1000);
-            
-        } else {
-            // Mostrar errores
-            showAlert('danger', data.message);
-            if (data.errors) {
-                console.error('Errores de formulario:', data.errors);
-            }
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert('danger', 'Error al crear la iniciativa. Por favor, intenta nuevamente.');
-    })
-    .finally(() => {
-        // Restaurar botón
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-    });
-}
+    function createInitiative() {
+        const form = document.getElementById('quickInitiativeForm');
+        const formData = new FormData(form);
 
-function showAlert(type, message) {
-    // Crear alerta Bootstrap
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.innerHTML = `
-        ${message}
+        // Validación básica
+        if (!formData.get('title') || !formData.get('initiative_type') || !formData.get('owner')) {
+            alert('Por favor, completa todos los campos requeridos.');
+            return;
+        }
+
+        // Deshabilitar botón para evitar doble envío
+        const submitBtn = document.querySelector('#createModal .btn-primary');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creando...';
+
+        // Obtener CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        // Enviar datos vía AJAX
+        fetch('{% url "initiatives:quick_initiative_create" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(formData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Mostrar mensaje de éxito
+                    showAlert('success', data.message);
+
+                    // Cerrar modal y limpiar formulario
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('createModal'));
+                    modal.hide();
+                    form.reset();
+
+                    // Recargar la página para mostrar la nueva iniciativa
+                    setTimeout(() => {
+                        if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                        } else {
+                            window.location.reload();
+                        }
+                    }, 1000);
+
+                } else {
+                    // Mostrar errores
+                    showAlert('danger', data.message);
+                    if (data.errors) {
+                        console.error('Errores de formulario:', data.errors);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('danger', 'Error al crear la iniciativa. Por favor, intenta nuevamente.');
+            })
+            .finally(() => {
+                // Restaurar botón
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            });
+    }
+
+    function showAlert(type, message) {
+        // Crear alerta Bootstrap
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show shadow-sm border-0`;
+        alertDiv.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
-    
-    // Insertar al inicio del contenedor
-    const container = document.querySelector('.container');
-    container.insertBefore(alertDiv, container.firstChild);
-    
-    // Auto-ocultar después de 5 segundos
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.remove();
-        }
-    }, 5000);
-}
 
-// Filtro automático al cambiar selects
-document.addEventListener('DOMContentLoaded', function() {
-    const filters = ['quarter', 'status', 'priority', 'owner', 'type'];
-    
-    filters.forEach(function(filterId) {
-        const element = document.getElementById(filterId);
-        if (element) {
-            element.addEventListener('change', function() {
-                this.form.submit();
-            });
-        }
+        // Insertar al inicio del contenedor
+        const container = document.querySelector('.container');
+        container.insertBefore(alertDiv, container.firstChild);
+
+        // Auto-ocultar después de 5 segundos
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+
+    // Filtro automático al cambiar selects
+    document.addEventListener('DOMContentLoaded', function () {
+        const filters = ['quarter', 'status', 'priority', 'owner', 'type'];
+
+        filters.forEach(function (filterId) {
+            const element = document.getElementById(filterId);
+            if (element) {
+                element.addEventListener('change', function () {
+                    this.form.submit();
+                });
+            }
+        });
+
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
     });
-});
 </script>
 {% endblock %}

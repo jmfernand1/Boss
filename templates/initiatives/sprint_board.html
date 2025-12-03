@@ -1,501 +1,624 @@
 {% extends 'base.html' %}
 
-{% block title %}Tablero de Sprint{% endblock %}
+{% block title %}Tablero de Tareas{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid py-4">
+    <!-- Header -->
     <div class="row mb-4">
         <div class="col-md-8">
-            <h1><i class="fas fa-columns"></i> Tablero de Sprint</h1>
-            {% if active_sprint %}
-                <p class="lead">{{ active_sprint.name }} - {{ active_sprint.quarter }}</p>
-                <div class="d-flex align-items-center">
-                    <small class="text-muted me-3">
-                        <i class="fas fa-calendar"></i> {{ active_sprint.start_date|date:"d/m/Y" }} - {{ active_sprint.end_date|date:"d/m/Y" }}
-                    </small>
-                    {% if active_sprint.goal %}
-                        <small class="badge bg-primary">{{ active_sprint.goal|truncatewords:8 }}</small>
-                    {% endif %}
-                </div>
-            {% else %}
-                <p class="lead text-muted">No hay un sprint activo</p>
-            {% endif %}
+            <h1 class="h3 fw-bold mb-1">
+                <i class="fas fa-tasks me-2 text-primary"></i>Tasks
+            </h1>
         </div>
         <div class="col-md-4 text-end">
-            <div class="btn-group" role="group">
-                <a href="{% url 'initiatives:dashboard' %}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Dashboard
-                </a>
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
-                        <i class="fas fa-running"></i> Sprints
+            <div class="d-flex gap-2 justify-content-end align-items-center">
+                <!-- Integrate Button -->
+                <button class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-puzzle-piece me-1"></i> Integrate
+                </button>
+                
+                <!-- Automate Button -->
+                <button class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-robot me-1"></i> Automate / 1
+                </button>
+                
+                <!-- Comments Button -->
+                <button class="btn btn-outline-secondary btn-sm">
+                    <i class="far fa-comment me-1"></i>
+                </button>
+                
+                <!-- Profile Button -->
+                <div class="avatar-circle bg-warning text-white">
+                    {{ request.user.first_name.0|default:"U" }}
+                </div>
+                
+                <!-- Invite Button -->
+                <button class="btn btn-outline-primary btn-sm">
+                    Invite / 1
+                </button>
+                
+                <!-- More Options -->
+                <button class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-ellipsis-h"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex align-items-center gap-3">
+                <!-- New Task Button -->
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                    <i class="fas fa-plus me-1"></i> New task
+                </button>
+                
+                <!-- Search -->
+                <div class="position-relative">
+                    <i class="fas fa-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted"></i>
+                    <input type="text" class="form-control ps-4" placeholder="Search" style="width: 200px;">
+                </div>
+                
+                <!-- Person Filter -->
+                <button class="btn btn-outline-secondary">
+                    <i class="fas fa-user me-1"></i> Person
+                </button>
+                
+                <!-- Filter -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-filter me-1"></i> Filter
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#">All tasks</a></li>
+                        <li><a class="dropdown-item" href="#">My tasks</a></li>
+                        <li><a class="dropdown-item" href="#">Overdue</a></li>
+                    </ul>
+                </div>
+                
+                <!-- Sort -->
+                <button class="btn btn-outline-secondary">
+                    <i class="fas fa-sort me-1"></i> Sort
+                </button>
+                
+                <!-- Hide/Show -->
+                <button class="btn btn-outline-secondary">
+                    <i class="fas fa-eye-slash me-1"></i> Hide / 3
+                </button>
+                
+                <!-- Group By -->
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-layer-group me-1"></i> Group by / 1
                     </button>
                     <ul class="dropdown-menu">
                         {% for sprint in sprints %}
-                            <li>
-                                <a class="dropdown-item {% if sprint == active_sprint %}active{% endif %}" 
-                                   href="?sprint={{ sprint.id }}">
-                                    {{ sprint.name }}
-                                    {% if sprint.is_active %}
-                                        <span class="badge bg-success ms-2">Activo</span>
-                                    {% endif %}
-                                </a>
-                            </li>
-                        {% empty %}
-                            <li><span class="dropdown-item-text text-muted">No hay sprints disponibles</span></li>
+                        <li>
+                            <a class="dropdown-item {% if sprint == active_sprint %}active{% endif %}" 
+                               href="?sprint={{ sprint.id }}">
+                                {{ sprint.name }}
+                                {% if sprint.is_active %}<span class="badge bg-success ms-2">Active</span>{% endif %}
+                            </a>
+                        </li>
                         {% endfor %}
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{% url 'initiatives:sprint_create' %}"><i class="fas fa-plus"></i> Nuevo Sprint</a></li>
-                        <li><a class="dropdown-item" href="{% url 'initiatives:sprint_list' %}"><i class="fas fa-list"></i> Lista de Sprints</a></li>
-                        
                     </ul>
                 </div>
+                
+                <!-- More Options -->
+                <button class="btn btn-outline-secondary">
+                    <i class="fas fa-ellipsis-h"></i>
+                </button>
             </div>
         </div>
     </div>
 
     {% if active_sprint %}
-    <!-- Tablero Kanban -->
-    <div class="kanban-board">
-        <div class="row g-3">
-            {% for status_name, initiatives in initiatives_by_status.items %}
-            <div class="col-md-2">
-                <div class="kanban-column">
-                    <div class="kanban-header 
-                        {% if status_name == 'Backlog' %}bg-secondary
-                        {% elif status_name == 'Planeado' %}bg-primary
-                        {% elif status_name == 'En Progreso' %}bg-warning
-                        {% elif status_name == 'Bloqueado' %}bg-danger
-                        {% elif status_name == 'Completado' %}bg-success
-                        {% else %}bg-dark{% endif %}">
-                        <h6 class="mb-0 text-white">
-                            {{ status_name }}
-                            <span class="badge bg-light text-dark ms-2">{{ initiatives.count }}</span>
-                        </h6>
-                    </div>
-                    <div class="kanban-body" data-status="{{ status_name }}">
-                        {% for initiative in initiatives %}
-                        <div class="kanban-card" data-initiative-id="{{ initiative.id }}">
-                            <div class="card">
-                                <div class="card-body p-3">
-                                    <!-- Header de la tarjeta -->
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div class="flex-grow-1">
-                                            <h6 class="card-title mb-1">
-                                                {% if initiative.is_operational %}
-                                                    <i class="fas fa-cogs text-warning" title="Operativo"></i>
-                                                {% endif %}
-                                                {{ initiative.title|truncatewords:5 }}
-                                            </h6>
-                                        </div>
-                                        <div class="dropdown">
-                                            <button class="btn btn-sm btn-link p-0" data-bs-toggle="dropdown">
-                                                <i class="fas fa-ellipsis-v"></i>
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end">
-                                                <li>
-                                                    <a class="dropdown-item" href="{% url 'initiatives:initiative_detail' initiative.pk %}">
-                                                        <i class="fas fa-eye"></i> Ver Detalles
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item" href="#">
-                                                        <i class="fas fa-edit"></i> Editar
-                                                    </a>
-                                                </li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li>
-                                                    <a class="dropdown-item" href="#" onclick="moveToStatus({{ initiative.id }}, 'IN_PROGRESS')">
-                                                        <i class="fas fa-play"></i> Mover a En Progreso
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item" href="#" onclick="moveToStatus({{ initiative.id }}, 'COMPLETED')">
-                                                        <i class="fas fa-check"></i> Marcar Completado
-                                                    </a>
-                                                </li>
-                                                <li>
-                                                    <a class="dropdown-item" href="#" onclick="moveToStatus({{ initiative.id }}, 'BLOCKED')">
-                                                        <i class="fas fa-ban"></i> Marcar Bloqueado
-                                                    </a>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Tipo y prioridad -->
-                                    <div class="mb-2">
-                                        <span class="badge" style="background-color: {{ initiative.initiative_type.color }}; font-size: 0.7em;">
-                                            {{ initiative.initiative_type.name }}
-                                        </span>
-                                        {% if initiative.priority == 'CRITICAL' %}
-                                            <span class="badge bg-danger ms-1" style="font-size: 0.7em;">Crítica</span>
-                                        {% elif initiative.priority == 'HIGH' %}
-                                            <span class="badge bg-warning ms-1" style="font-size: 0.7em;">Alta</span>
-                                        {% endif %}
-                                    </div>
-                                    
-                                    <!-- Descripción -->
-                                    {% if initiative.description %}
-                                        <p class="card-text small text-muted mb-2">
-                                            {{ initiative.description|truncatewords:12 }}
-                                        </p>
-                                    {% endif %}
-                                    
-                                    <!-- Progreso -->
-                                    <div class="mb-2">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <small class="text-muted">Progreso</small>
-                                            <small>{{ initiative.progress }}%</small>
-                                        </div>
-                                        <div class="progress" style="height: 4px;">
-                                            <div class="progress-bar 
-                                                {% if initiative.progress < 25 %}bg-danger
-                                                {% elif initiative.progress < 50 %}bg-warning
-                                                {% elif initiative.progress < 75 %}bg-info
-                                                {% else %}bg-success{% endif %}" 
-                                                style="width: {{ initiative.progress }}%">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Footer de la tarjeta -->
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div class="d-flex align-items-center">
-                                            <img src="https://via.placeholder.com/24x24/007bff/ffffff?text={{ initiative.owner.user.first_name.0 }}{{ initiative.owner.user.last_name.0 }}" 
-                                                 alt="{{ initiative.owner.full_name }}" 
-                                                 class="rounded-circle me-1" 
-                                                 title="{{ initiative.owner.full_name }}">
-                                            {% if initiative.collaborators.exists %}
-                                                <small class="text-muted">+{{ initiative.collaborators.count }}</small>
-                                            {% endif %}
-                                        </div>
-                                        <div class="text-end">
-                                            {% if initiative.target_date %}
-                                                <small class="text-muted">
-                                                    {{ initiative.target_date|date:"d/m" }}
-                                                    {% if initiative.target_date < today and initiative.status != 'COMPLETED' %}
-                                                        <i class="fas fa-exclamation-triangle text-danger ms-1" title="Vencido"></i>
-                                                    {% endif %}
-                                                </small>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% empty %}
-                            <div class="text-center text-muted py-3">
-                                <i class="fas fa-plus-circle fa-2x mb-2 opacity-25"></i>
-                                <p class="small mb-0">Arrastra iniciativas aquí</p>
-                            </div>
-                        {% endfor %}
-                    </div>
-                </div>
+    <!-- Sprint Sections -->
+    {% for sprint, tasks in tasks_by_sprint.items %}
+    <div class="sprint-section mb-4">
+        <!-- Sprint Header -->
+        <div class="d-flex align-items-center mb-3">
+            <button class="btn btn-link text-decoration-none p-0 me-2 text-dark" type="button" 
+                    data-bs-toggle="collapse" data-bs-target="#sprint{{ sprint.id }}Collapse" aria-expanded="true">
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <h4 class="mb-0 text-primary me-3">{{ sprint.name }}</h4>
+            <span class="text-muted small me-auto">
+                {{ sprint.start_date|date:"d M" }} - {{ sprint.end_date|date:"d M" }}
+                {% if sprint.goal %} • {{ sprint.goal }}{% endif %}
+            </span>
+            
+            <div class="d-flex gap-2 align-items-center">
+                <span class="badge bg-light text-dark border">{{ sprint_stats.completion_percentage }}% Complete</span>
+                <button class="btn btn-sm btn-outline-secondary">Burndown</button>
+                <button class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-play me-1"></i> Start
+                </button>
+                <button class="btn btn-sm btn-link text-muted">
+                    <i class="fas fa-ellipsis-h"></i>
+                </button>
             </div>
-            {% endfor %}
         </div>
-    </div>
 
-    <!-- Estadísticas del Sprint -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Estadísticas del Sprint</h5>
+        <!-- Tasks Table -->
+        <div class="collapse show" id="sprint{{ sprint.id }}Collapse">
+            <div class="card border-0 shadow-sm monday-board">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 monday-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;" class="text-center">
+                                    <input type="checkbox" class="form-check-input">
+                                </th>
+                                <th style="min-width: 300px;">Task</th>
+                                <th style="width: 80px;" class="text-center">Owner</th>
+                                <th style="width: 140px;" class="text-center">Status</th>
+                                <th style="width: 140px;" class="text-center">Priority</th>
+                                <th style="width: 120px;" class="text-center">Type</th>
+                                <th style="width: 120px;" class="text-center">Estimated SP</th>
+                                <th style="width: 200px;" class="text-center">Epic</th>
+                                <th style="width: 50px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr class="task-row" data-task-id="{{ task.id }}">
+                                <td class="text-center">
+                                    <input type="checkbox" class="form-check-input task-checkbox">
+                                </td>
+                                <td class="border-end">
+                                    <div class="d-flex align-items-center justify-content-between group-hover-parent">
+                                        <div class="d-flex align-items-center">
+                                            {% if task.status == 'DONE' %}
+                                            <i class="fas fa-check-circle text-success me-2"></i>
+                                            {% elif task.status == 'BLOCKED' %}
+                                            <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                                            {% else %}
+                                            <i class="far fa-circle text-muted me-2"></i>
+                                            {% endif %}
+                                            <a href="{% url 'initiatives:task_detail' task.pk %}" 
+                                               class="text-dark text-decoration-none task-title">
+                                                {{ task.title }}
+                                            </a>
+                                        </div>
+                                        <button class="btn btn-sm btn-link text-muted opacity-0 group-hover-visible p-0">
+                                            <i class="far fa-comment-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td class="text-center border-end">
+                                    {% if task.assignee %}
+                                    <div class="avatar-circle bg-primary text-white" 
+                                         title="{{ task.assignee.full_name }}">
+                                        {{ task.assignee.user.first_name.0|default:"" }}{{ task.assignee.user.last_name.0|default:"" }}
+                                    </div>
+                                    {% else %}
+                                    <div class="avatar-circle bg-light text-muted">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                                <td class="p-0 border-end">
+                                    <div class="status-cell 
+                                        {% if task.status == 'DONE' %}bg-monday-green
+                                        {% elif task.status == 'IN_PROGRESS' %}bg-monday-orange
+                                        {% elif task.status == 'IN_REVIEW' %}bg-monday-blue
+                                        {% elif task.status == 'BLOCKED' %}bg-monday-red
+                                        {% elif task.status == 'TODO' %}bg-monday-gray
+                                        {% else %}bg-secondary{% endif %} text-white text-center">
+                                        {{ task.get_status_display }}
+                                    </div>
+                                </td>
+                                <td class="p-0 border-end">
+                                    <div class="status-cell 
+                                        {% if task.user_story.priority == 'CRITICAL' %}bg-monday-red
+                                        {% elif task.user_story.priority == 'HIGH' %}bg-monday-yellow text-dark
+                                        {% elif task.user_story.priority == 'MEDIUM' %}bg-monday-blue
+                                        {% else %}bg-monday-gray{% endif %} text-white text-center">
+                                        {{ task.user_story.get_priority_display }}
+                                    </div>
+                                </td>
+                                <td class="p-0 border-end">
+                                    <div class="status-cell 
+                                        {% if task.task_type == 'DEVELOPMENT' %}bg-monday-green
+                                        {% elif task.task_type == 'TESTING' %}bg-monday-red
+                                        {% elif task.task_type == 'DESIGN' %}bg-monday-purple
+                                        {% elif task.task_type == 'RESEARCH' %}bg-monday-blue
+                                        {% else %}bg-monday-gray{% endif %} text-white text-center">
+                                        {{ task.get_task_type_display }}
+                                    </div>
+                                </td>
+                                <td class="text-center border-end">
+                                    <span class="badge bg-light text-dark border">
+                                        {{ task.user_story.story_points|default:"0" }} SP
+                                    </span>
+                                </td>
+                                <td class="border-end">
+                                    <div class="d-flex align-items-center">
+                                        <div class="epic-color-bar me-2" 
+                                             style="background-color: {{ task.user_story.initiative.initiative_type.color }}; width: 4px; height: 20px;"></div>
+                                        <span class="small text-truncate" style="max-width: 150px;" 
+                                              title="{{ task.user_story.initiative.title }}">
+                                            {{ task.user_story.initiative.title }}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-link text-muted p-0" data-bs-toggle="dropdown">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="{% url 'initiatives:task_edit' task.pk %}">
+                                                <i class="fas fa-edit me-2"></i>Editar
+                                            </a></li>
+                                            <li><a class="dropdown-item text-danger" href="{% url 'initiatives:task_delete' task.pk %}">
+                                                <i class="fas fa-trash me-2"></i>Eliminar
+                                            </a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            
+                            <!-- Add Task Row -->
+                            <tr class="add-task-row">
+                                <td class="text-center">
+                                    <input type="checkbox" class="form-check-input" disabled>
+                                </td>
+                                <td colspan="8">
+                                    <button class="btn btn-link text-decoration-none text-muted ps-0" 
+                                            data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                                        <i class="fas fa-plus me-2"></i> Add task
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        {% for status_name, initiatives in initiatives_by_status.items %}
-                        <div class="col-md-2">
-                            <div class="text-center">
-                                <h4 class="
-                                    {% if status_name == 'Completado' %}text-success
-                                    {% elif status_name == 'En Progreso' %}text-warning
-                                    {% elif status_name == 'Bloqueado' %}text-danger
-                                    {% else %}text-primary{% endif %}">
-                                    {{ initiatives.count }}
-                                </h4>
-                                <p class="mb-0 small">{{ status_name }}</p>
-                            </div>
+
+                <!-- Summary Footer -->
+                <div class="d-flex border-top bg-light">
+                    <div style="width: 40px;"></div>
+                    <div class="flex-grow-1 border-end p-2"></div>
+                    <div style="width: 80px;" class="border-end"></div>
+                    <div style="width: 140px;" class="border-end p-2">
+                        <div class="progress-summary d-flex">
+                            <div class="bg-monday-green" style="width: {{ sprint_stats.completion_percentage }}%; height: 20px;"></div>
+                            <div class="bg-monday-orange" style="width: {% widthratio sprint_stats.in_progress_tasks sprint_stats.total_tasks 100 %}%; height: 20px;"></div>
+                            <div class="bg-monday-red" style="width: {% widthratio sprint_stats.blocked_tasks sprint_stats.total_tasks 100 %}%; height: 20px;"></div>
                         </div>
-                        {% endfor %}
                     </div>
-                    
-                    <!-- Progreso general -->
-                    <div class="mt-4">
-                        <h6>Progreso General del Sprint</h6>
-                        {% with total_initiatives=initiatives_by_status.values|length completed_initiatives=initiatives_by_status.Completado.count|default:0 %}
-                        {% if total_initiatives > 0 %}
-                            {% widthratio completed_initiatives total_initiatives 100 as completion_percentage %}
-                            <div class="progress mb-2" style="height: 20px;">
-                                <div class="progress-bar bg-success" style="width: {{ completion_percentage }}%">
-                                    {{ completion_percentage }}%
-                                </div>
-                            </div>
-                            <small class="text-muted">
-                                {{ completed_initiatives }} de {{ total_initiatives }} iniciativas completadas
-                            </small>
-                        {% else %}
-                            <p class="text-muted">No hay iniciativas en este sprint</p>
-                        {% endif %}
-                        {% endwith %}
+                    <div style="width: 140px;" class="border-end p-2">
+                        <div class="progress-summary d-flex">
+                            <div class="bg-monday-red" style="width: 20%; height: 20px;"></div>
+                            <div class="bg-monday-yellow" style="width: 30%; height: 20px;"></div>
+                            <div class="bg-monday-blue" style="width: 50%; height: 20px;"></div>
+                        </div>
                     </div>
+                    <div style="width: 120px;" class="border-end p-2">
+                        <div class="progress-summary d-flex">
+                            <div class="bg-monday-green" style="width: 40%; height: 20px;"></div>
+                            <div class="bg-monday-purple" style="width: 30%; height: 20px;"></div>
+                            <div class="bg-monday-red" style="width: 30%; height: 20px;"></div>
+                        </div>
+                    </div>
+                    <div class="text-center p-2 border-end">
+                        <strong>{{ sprint_stats.total_story_points }} SP</strong><br>
+                        <small class="text-muted">sum</small>
+                    </div>
+                    <div class="flex-grow-1"></div>
                 </div>
             </div>
         </div>
     </div>
-    
+    {% endfor %}
     {% else %}
-    <!-- No hay sprint activo -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-center py-5">
-                    <i class="fas fa-running fa-3x text-muted mb-3"></i>
-                    <h5>No hay un sprint activo</h5>
-                    <p class="text-muted">Configure un sprint activo para usar el tablero Kanban.</p>
-                    <div class="btn-group" role="group">
-                        <a href="#" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Crear Nuevo Sprint
-                        </a>
-                        {% if sprints %}
-                            <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
-                                <i class="fas fa-list"></i> Ver Sprints Existentes
-                            </button>
-                            <ul class="dropdown-menu">
-                                {% for sprint in sprints %}
-                                    <li>
-                                        <a class="dropdown-item" href="?sprint={{ sprint.id }}">
-                                            {{ sprint.name }}
-                                        </a>
-                                    </li>
-                                {% endfor %}
-                            </ul>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- No Active Sprint -->
+    <div class="text-center py-5">
+        <i class="fas fa-running fa-3x text-muted mb-3"></i>
+        <h3>No Active Sprint</h3>
+        <p class="text-muted">Select a sprint to view the task board</p>
+        <a href="{% url 'initiatives:sprint_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Create Sprint
+        </a>
     </div>
     {% endif %}
+</div>
+
+<!-- Modal para crear tarea -->
+<div class="modal fade" id="createTaskModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-plus me-2"></i>New Task
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="quickTaskForm">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="title" class="form-label fw-bold text-secondary">
+                                Task Title <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="title" name="title" required 
+                                   placeholder="Enter task title...">
+                        </div>
+                        <div class="col-12">
+                            <label for="description" class="form-label fw-bold text-secondary">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3" 
+                                      placeholder="Task description..."></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="user_story_id" class="form-label fw-bold text-secondary">
+                                User Story <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" id="user_story_id" name="user_story_id" required>
+                                <option value="">Select user story...</option>
+                                {% if active_sprint %}
+                                    {% for story in active_sprint.user_stories.all %}
+                                    <option value="{{ story.id }}">{{ story.title }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="assignee" class="form-label fw-bold text-secondary">Assignee</label>
+                            <select class="form-select" id="assignee" name="assignee">
+                                <option value="">Select assignee...</option>
+                                {% for employee in employees %}
+                                <option value="{{ employee.id }}">{{ employee.full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="task_type" class="form-label fw-bold text-secondary">Type</label>
+                            <select class="form-select" id="task_type" name="task_type">
+                                {% for code, name in task_type_choices %}
+                                <option value="{{ code }}" {% if code == 'DEVELOPMENT' %}selected{% endif %}>
+                                    {{ name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="estimated_hours" class="form-label fw-bold text-secondary">Estimated Hours</label>
+                            <input type="number" class="form-control" id="estimated_hours" name="estimated_hours" 
+                                   step="0.5" min="0" placeholder="0.0">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-light text-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success shadow-sm" onclick="createTask()">
+                    <i class="fas fa-save me-2"></i>Create Task
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_css %}
 <style>
-.kanban-board {
-    min-height: 70vh;
-}
+    /* Monday.com inspired colors */
+    .bg-monday-green { background-color: #00c875 !important; }
+    .bg-monday-orange { background-color: #fdab3d !important; }
+    .bg-monday-red { background-color: #e2445c !important; }
+    .bg-monday-blue { background-color: #579bfc !important; }
+    .bg-monday-purple { background-color: #a25ddc !important; }
+    .bg-monday-yellow { background-color: #ffcb00 !important; }
+    .bg-monday-gray { background-color: #c4c4c4 !important; }
 
-.kanban-column {
-    background: #f8f9fa;
-    border-radius: 0.5rem;
-    height: 100%;
-    min-height: 500px;
-}
-
-.kanban-header {
-    padding: 1rem;
-    border-radius: 0.5rem 0.5rem 0 0;
-    font-weight: 600;
-}
-
-.kanban-body {
-    padding: 1rem;
-    min-height: 450px;
-    max-height: 70vh;
-    overflow-y: auto;
-}
-
-.kanban-card {
-    margin-bottom: 1rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    cursor: move;
-}
-
-.kanban-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.kanban-card .card {
-    border: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.kanban-card.dragging {
-    opacity: 0.5;
-    transform: rotate(5deg);
-}
-
-.kanban-body.drag-over {
-    background: rgba(13, 110, 253, 0.1);
-    border: 2px dashed #0d6efd;
-}
-
-.card-title {
-    font-size: 0.9rem;
-    line-height: 1.2;
-}
-
-.card-text {
-    font-size: 0.8rem;
-    line-height: 1.3;
-}
-
-.progress {
-    background-color: #e9ecef;
-}
-
-.user-avatar {
-    width: 24px;
-    height: 24px;
-    background: #6c757d;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 0.7rem;
-    font-weight: 600;
-}
-
-.status-stats {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 0.5rem;
-    padding: 1rem;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-    .kanban-board .col-md-2 {
-        margin-bottom: 1rem;
+    /* Monday.com board styling */
+    .monday-board {
+        border-left: 6px solid #579bfc !important;
     }
-    
-    .kanban-column {
-        min-height: 300px;
+
+    .monday-table thead th {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #676879;
+        border-bottom: 2px solid #d0d4e4;
+        padding: 0.75rem 0.5rem;
+        background-color: #f8f9fb;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
-    
-    .kanban-body {
-        min-height: 250px;
-        max-height: 50vh;
+
+    .monday-table tbody td {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+        height: 48px;
+        vertical-align: middle;
+        border-bottom: 1px solid #e6e9ef;
     }
-}
 
-/* Animaciones */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+    .status-cell {
+        font-size: 0.8rem;
+        font-weight: 600;
+        width: 100%;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        margin: 2px;
+    }
 
-.kanban-card {
-    animation: fadeIn 0.3s ease;
-}
+    .status-cell:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
 
-/* Estados especiales */
-.priority-critical {
-    border-left: 4px solid #dc3545 !important;
-}
+    .avatar-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin: 0 auto;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
 
-.priority-high {
-    border-left: 4px solid #ffc107 !important;
-}
+    .group-hover-visible {
+        visibility: hidden;
+        transition: visibility 0.2s;
+    }
 
-.overdue {
-    background: linear-gradient(45deg, transparent 40%, rgba(220, 53, 69, 0.1) 50%, transparent 60%);
-}
+    .group-hover-parent:hover .group-hover-visible {
+        visibility: visible;
+    }
+
+    .add-task-row:hover {
+        background-color: #f8f9fb;
+    }
+
+    .task-row:hover {
+        background-color: #f8f9fb;
+    }
+
+    .task-title {
+        font-weight: 500;
+        max-width: 250px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .epic-color-bar {
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+
+    .progress-summary {
+        border-radius: 4px;
+        overflow: hidden;
+        height: 20px;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Sprint section styling */
+    .sprint-section {
+        margin-bottom: 2rem;
+    }
+
+    /* Toolbar styling */
+    .btn-outline-secondary {
+        border-color: #d0d4e4;
+        color: #676879;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #f8f9fb;
+        border-color: #c4c7d0;
+    }
+
+    .btn-success {
+        background-color: #00c875;
+        border-color: #00c875;
+        font-weight: 600;
+    }
+
+    /* Custom checkbox styling */
+    .form-check-input:checked {
+        background-color: #00c875;
+        border-color: #00c875;
+    }
+
+    /* Table borders */
+    .monday-table .border-end {
+        border-right: 1px solid #e6e9ef !important;
+    }
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function moveToStatus(initiativeId, newStatus) {
-    if (confirm('¿Cambiar el estado de esta iniciativa?')) {
-        // Implementar lógica AJAX para cambiar estado
-        alert(`Funcionalidad de cambio de estado a ${newStatus} pendiente de implementar`);
-    }
-}
+    function createTask() {
+        const form = document.getElementById('quickTaskForm');
+        const formData = new FormData(form);
 
-// Drag and Drop functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const cards = document.querySelectorAll('.kanban-card');
-    const columns = document.querySelectorAll('.kanban-body');
-    
-    // Hacer las tarjetas arrastrables
-    cards.forEach(card => {
-        card.draggable = true;
-        
-        card.addEventListener('dragstart', function(e) {
-            this.classList.add('dragging');
-            e.dataTransfer.setData('text/plain', this.dataset.initiativeId);
-        });
-        
-        card.addEventListener('dragend', function(e) {
-            this.classList.remove('dragging');
-        });
-    });
-    
-    // Configurar columnas como destinos de drop
-    columns.forEach(column => {
-        column.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.classList.add('drag-over');
-        });
-        
-        column.addEventListener('dragleave', function(e) {
-            this.classList.remove('drag-over');
-        });
-        
-        column.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.classList.remove('drag-over');
-            
-            const initiativeId = e.dataTransfer.getData('text/plain');
-            const newStatus = this.dataset.status;
-            const draggedCard = document.querySelector(`[data-initiative-id="${initiativeId}"]`);
-            
-            if (draggedCard && this !== draggedCard.parentNode) {
-                // Mover la tarjeta visualmente
-                this.appendChild(draggedCard);
-                
-                // Aquí se haría la llamada AJAX para actualizar el estado en el backend
-                console.log(`Moviendo iniciativa ${initiativeId} a estado ${newStatus}`);
-                
-                // Mostrar notificación
-                showNotification(`Iniciativa movida a ${newStatus}`, 'success');
-            }
-        });
-    });
-});
-
-function showNotification(message, type = 'info') {
-    // Crear notificación temporal
-    const notification = document.createElement('div');
-    notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-    notification.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Auto-eliminar después de 3 segundos
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.remove();
+        // Validación básica
+        if (!formData.get('title') || !formData.get('user_story_id')) {
+            alert('Please complete all required fields.');
+            return;
         }
-    }, 3000);
-}
 
-// Actualizar timestamps cada minuto
-setInterval(function() {
-    const timeElements = document.querySelectorAll('[data-timestamp]');
-    timeElements.forEach(element => {
-        // Actualizar timestamps relativos si es necesario
-        console.log('Actualizando timestamps...');
+        // Deshabilitar botón para evitar doble envío
+        const submitBtn = document.querySelector('#createTaskModal .btn-success');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating...';
+
+        // Obtener CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        // Enviar datos vía AJAX
+        fetch('{% url "initiatives:quick_task_create" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Cerrar modal y recargar
+                const modal = bootstrap.Modal.getInstance(document.getElementById('createTaskModal'));
+                modal.hide();
+                form.reset();
+                location.reload();
+            } else {
+                alert(data.message || 'Error creating task');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error creating task. Please try again.');
+        })
+        .finally(() => {
+            // Restaurar botón
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        });
+    }
+
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Handle task checkbox changes
+        document.querySelectorAll('.task-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const row = this.closest('.task-row');
+                if (this.checked) {
+                    row.style.opacity = '0.6';
+                } else {
+                    row.style.opacity = '1';
+                }
+            });
+        });
     });
-}, 60000);
 </script>
 {% endblock %}

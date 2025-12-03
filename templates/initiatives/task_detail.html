@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ task.title }} - Tarea{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>
+                <i class="fas fa-tasks text-warning"></i>
+                {{ task.title }}
+            </h1>
+            {% if task.description %}
+                <p class="lead">{{ task.description }}</p>
+            {% endif %}
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <span class="badge bg-warning text-dark">{{ task }}</span>
+                <span class="badge bg-success">Historia: {{ task.user_story.title }}</span>
+                <span class="badge bg-primary">Épica: {{ task.user_story.initiative.title }}</span>
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'initiatives:user_story_detail' task.user_story.pk %}" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left"></i> Volver a Historia
+            </a>
+            <a href="{% url 'initiatives:task_edit' task.pk %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información Principal -->
+        <div class="col-md-8">
+            <!-- Detalles Básicos -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información General</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong>Estado:</strong>
+                            <div>
+                                {% if task.status == 'TODO' %}
+                                    <span class="badge bg-secondary">{{ task.get_status_display }}</span>
+                                {% elif task.status == 'IN_PROGRESS' %}
+                                    <span class="badge bg-warning text-dark">{{ task.get_status_display }}</span>
+                                {% elif task.status == 'IN_REVIEW' %}
+                                    <span class="badge bg-primary">{{ task.get_status_display }}</span>
+                                {% elif task.status == 'DONE' %}
+                                    <span class="badge bg-success">{{ task.get_status_display }}</span>
+                                {% elif task.status == 'BLOCKED' %}
+                                    <span class="badge bg-danger">{{ task.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Tipo de Tarea:</strong>
+                            <div>
+                                {% if task.task_type == 'DEVELOPMENT' %}
+                                    <span class="badge bg-primary">{{ task.get_task_type_display }}</span>
+                                {% elif task.task_type == 'TESTING' %}
+                                    <span class="badge bg-success">{{ task.get_task_type_display }}</span>
+                                {% elif task.task_type == 'DESIGN' %}
+                                    <span class="badge bg-info">{{ task.get_task_type_display }}</span>
+                                {% elif task.task_type == 'RESEARCH' %}
+                                    <span class="badge bg-warning text-dark">{{ task.get_task_type_display }}</span>
+                                {% elif task.task_type == 'DOCUMENTATION' %}
+                                    <span class="badge bg-secondary">{{ task.get_task_type_display }}</span>
+                                {% elif task.task_type == 'REVIEW' %}
+                                    <span class="badge bg-primary">{{ task.get_task_type_display }}</span>
+                                {% elif task.task_type == 'DEPLOYMENT' %}
+                                    <span class="badge bg-danger">{{ task.get_task_type_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-dark">{{ task.get_task_type_display }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if task.assignee %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Asignado a:</strong>
+                            <div>{{ task.assignee.full_name }}</div>
+                        </div>
+                        {% endif %}
+                        {% if task.estimated_hours %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Horas Estimadas:</strong>
+                            <div>{{ task.estimated_hours }} horas</div>
+                        </div>
+                        {% endif %}
+                        {% if task.actual_hours %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Horas Reales:</strong>
+                            <div>{{ task.actual_hours }} horas</div>
+                        </div>
+                        {% endif %}
+                        {% if task.estimated_hours and task.actual_hours %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Diferencia:</strong>
+                            <div>
+                                {% if task.actual_hours > task.estimated_hours %}
+                                    <span class="text-danger">+{{ task.actual_hours|floatformat:1 }} horas ({{ task.estimated_hours|floatformat:1 }} estimadas)</span>
+                                {% elif task.actual_hours < task.estimated_hours %}
+                                    <span class="text-success">{{ task.actual_hours|floatformat:1 }} horas ({{ task.estimated_hours|floatformat:1 }} estimadas)</span>
+                                {% else %}
+                                    <span class="text-success">Exacto ({{ task.estimated_hours|floatformat:1 }} horas)</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if task.started_at %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Iniciado el:</strong>
+                            <div>{{ task.started_at|date:"d/m/Y H:i" }}</div>
+                        </div>
+                        {% endif %}
+                        {% if task.completed_at %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Completado el:</strong>
+                            <div>{{ task.completed_at|date:"d/m/Y H:i" }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Razón de Bloqueo -->
+            {% if task.status == 'BLOCKED' and task.blocked_reason %}
+            <div class="card mb-4 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-ban"></i> Razón del Bloqueo</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger mb-0">
+                        {{ task.blocked_reason|linebreaks }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Descripción Detallada -->
+            {% if task.description %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-align-left"></i> Descripción Detallada</h5>
+                </div>
+                <div class="card-body">
+                    {{ task.description|linebreaks }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- Cambio Rápido de Estado -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-exchange-alt"></i> Cambiar Estado</h6>
+                </div>
+                <div class="card-body">
+                    <form id="statusForm" method="post" action="{% url 'initiatives:task_change_status' task.pk %}">
+                        {% csrf_token %}
+                        <select name="status" class="form-select" onchange="changeTaskStatus()">
+                            <option value="TODO" {% if task.status == 'TODO' %}selected{% endif %}>Por Hacer</option>
+                            <option value="IN_PROGRESS" {% if task.status == 'IN_PROGRESS' %}selected{% endif %}>En Progreso</option>
+                            <option value="IN_REVIEW" {% if task.status == 'IN_REVIEW' %}selected{% endif %}>En Revisión</option>
+                            <option value="DONE" {% if task.status == 'DONE' %}selected{% endif %}>Terminado</option>
+                            <option value="BLOCKED" {% if task.status == 'BLOCKED' %}selected{% endif %}>Bloqueado</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Progreso de la Historia -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-chart-line"></i> Progreso de Historia</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="text-muted">{{ task.user_story.title|truncatewords:6 }}</small>
+                        <span class="fw-bold">{{ task.user_story.progress_percentage }}%</span>
+                    </div>
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ task.user_story.progress_percentage }}%"></div>
+                    </div>
+                    <small class="text-muted">
+                        {{ completed_tasks }} de {{ total_tasks }} tareas completadas
+                    </small>
+                </div>
+            </div>
+
+            <!-- Acciones Rápidas -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-bolt"></i> Acciones Rápidas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'initiatives:task_edit' task.pk %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-edit"></i> Editar Tarea
+                        </a>
+                        <a href="{% url 'initiatives:user_story_detail' task.user_story.pk %}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-book"></i> Ver Historia
+                        </a>
+                        <a href="{% url 'initiatives:initiative_detail' task.user_story.initiative.pk %}" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-lightbulb"></i> Ver Épica
+                        </a>
+                        <a href="{% url 'initiatives:task_delete' task.pk %}" class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Historia -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-book"></i> Historia Relacionada</h6>
+                </div>
+                <div class="card-body">
+                    <h6>{{ task.user_story.title }}</h6>
+                    {% if task.user_story.story_points %}
+                        <span class="badge bg-dark mb-2">{{ task.user_story.story_points }} SP</span>
+                    {% endif %}
+                    {% if task.user_story.assignee %}
+                        <p class="small text-muted mb-2">Asignado a: {{ task.user_story.assignee.full_name }}</p>
+                    {% endif %}
+                    <div class="small">
+                        <strong>Épica:</strong> {{ task.user_story.initiative.title }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function changeTaskStatus() {
+    const form = document.getElementById('statusForm');
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al cambiar el estado');
+    });
+}
+</script>
+{% endblock %}

@@ -42,7 +42,7 @@
                     <select name="owner" id="owner" class="form-select">
                         <option value="">Todos</option>
                         {% for employee in employees %}
-                            <option value="{{ employee.id }}" {% if selected_owner == employee.id|stringformat:"s" %}selected{% endif %}>
+                            <option value="{{ employee.id }}" {% if selected_owner|add:"0" == employee.id %}selected{% endif %}>
                                 {{ employee.full_name }}
                             </option>
                         {% endfor %}

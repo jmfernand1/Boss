@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ user_story.title }} - Historia de Usuario{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>
+                <i class="fas fa-book text-success"></i>
+                {{ user_story.title }}
+            </h1>
+            <p class="lead">{{ user_story.description }}</p>
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <span class="badge bg-primary">{{ user_story }}</span>
+                <span class="badge bg-info">Épica: {{ user_story.initiative.title }}</span>
+                {% if user_story.sprint %}
+                    <span class="badge bg-warning text-dark">{{ user_story.sprint.name }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'initiatives:initiative_detail' user_story.initiative.pk %}" class="btn btn-secondary me-2">
+                <i class="fas fa-arrow-left"></i> Volver a Épica
+            </a>
+            <a href="{% url 'initiatives:user_story_edit' user_story.pk %}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información Principal -->
+        <div class="col-md-8">
+            <!-- Detalles Básicos -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información General</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong>Estado:</strong>
+                            <div>
+                                {% if user_story.status == 'BACKLOG' %}
+                                    <span class="badge bg-secondary">{{ user_story.get_status_display }}</span>
+                                {% elif user_story.status == 'READY' %}
+                                    <span class="badge bg-info">{{ user_story.get_status_display }}</span>
+                                {% elif user_story.status == 'IN_PROGRESS' %}
+                                    <span class="badge bg-warning text-dark">{{ user_story.get_status_display }}</span>
+                                {% elif user_story.status == 'IN_REVIEW' %}
+                                    <span class="badge bg-primary">{{ user_story.get_status_display }}</span>
+                                {% elif user_story.status == 'TESTING' %}
+                                    <span class="badge bg-warning">{{ user_story.get_status_display }}</span>
+                                {% elif user_story.status == 'DONE' %}
+                                    <span class="badge bg-success">{{ user_story.get_status_display }}</span>
+                                {% elif user_story.status == 'CANCELLED' %}
+                                    <span class="badge bg-danger">{{ user_story.get_status_display }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Prioridad:</strong>
+                            <div>
+                                {% if user_story.priority == 'CRITICAL' %}
+                                    <span class="badge bg-danger">{{ user_story.get_priority_display }}</span>
+                                {% elif user_story.priority == 'HIGH' %}
+                                    <span class="badge bg-warning text-dark">{{ user_story.get_priority_display }}</span>
+                                {% elif user_story.priority == 'MEDIUM' %}
+                                    <span class="badge bg-info">{{ user_story.get_priority_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ user_story.get_priority_display }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if user_story.story_points %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Story Points:</strong>
+                            <div>
+                                <span class="badge bg-dark">{{ user_story.story_points }} puntos</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if user_story.assignee %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Asignado a:</strong>
+                            <div>{{ user_story.assignee.full_name }}</div>
+                        </div>
+                        {% endif %}
+                        {% if user_story.started_at %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Iniciado el:</strong>
+                            <div>{{ user_story.started_at|date:"d/m/Y H:i" }}</div>
+                        </div>
+                        {% endif %}
+                        {% if user_story.completed_at %}
+                        <div class="col-md-6 mb-3">
+                            <strong>Completado el:</strong>
+                            <div>{{ user_story.completed_at|date:"d/m/Y H:i" }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Criterios de Aceptación -->
+            {% if user_story.acceptance_criteria %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-check-circle"></i> Criterios de Aceptación</h5>
+                </div>
+                <div class="card-body">
+                    <div class="acceptance-criteria">
+                        {{ user_story.acceptance_criteria|linebreaks }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Tareas -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-tasks"></i> Tareas ({{ task_stats.total }})</h5>
+                    <a href="{% url 'initiatives:task_create' user_story.pk %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> Nueva Tarea
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if tasks %}
+                        <!-- Progress Bar -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="text-muted">Progreso</small>
+                                <small class="fw-bold">{{ user_story.progress_percentage }}%</small>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {{ user_story.progress_percentage }}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Task Stats -->
+                        <div class="row mb-3">
+                            <div class="col">
+                                <span class="badge bg-secondary me-2">{{ task_stats.todo }} Por Hacer</span>
+                                <span class="badge bg-warning text-dark me-2">{{ task_stats.in_progress }} En Progreso</span>
+                                <span class="badge bg-success me-2">{{ task_stats.done }} Terminadas</span>
+                                {% if task_stats.blocked > 0 %}
+                                    <span class="badge bg-danger me-2">{{ task_stats.blocked }} Bloqueadas</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Tasks List -->
+                        <div class="row">
+                            {% for task in tasks %}
+                            <div class="col-12 mb-2">
+                                <div class="card card-body py-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">
+                                                <a href="{% url 'initiatives:task_detail' task.pk %}" class="text-decoration-none">
+                                                    {{ task.title }}
+                                                </a>
+                                            </h6>
+                                            <div class="d-flex align-items-center gap-2">
+                                                {% if task.status == 'TODO' %}
+                                                    <span class="badge bg-secondary">{{ task.get_status_display }}</span>
+                                                {% elif task.status == 'IN_PROGRESS' %}
+                                                    <span class="badge bg-warning text-dark">{{ task.get_status_display }}</span>
+                                                {% elif task.status == 'IN_REVIEW' %}
+                                                    <span class="badge bg-primary">{{ task.get_status_display }}</span>
+                                                {% elif task.status == 'DONE' %}
+                                                    <span class="badge bg-success">{{ task.get_status_display }}</span>
+                                                {% elif task.status == 'BLOCKED' %}
+                                                    <span class="badge bg-danger">{{ task.get_status_display }}</span>
+                                                {% endif %}
+                                                <span class="badge bg-info">{{ task.get_task_type_display }}</span>
+                                                {% if task.assignee %}
+                                                    <small class="text-muted">{{ task.assignee.full_name }}</small>
+                                                {% endif %}
+                                                {% if task.estimated_hours %}
+                                                    <small class="text-muted">{{ task.estimated_hours }}h estimadas</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="ms-2">
+                                            <a href="{% url 'initiatives:task_edit' task.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="fas fa-tasks fa-3x mb-3"></i>
+                                <p>No hay tareas creadas para esta historia de usuario.</p>
+                                <a href="{% url 'initiatives:task_create' user_story.pk %}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Crear Primera Tarea
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- Estadísticas -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-chart-pie"></i> Estadísticas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="h4 mb-0 text-primary">{{ task_stats.total }}</div>
+                            <small class="text-muted">Tareas Total</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="h4 mb-0 text-success">{{ task_stats.done }}</div>
+                            <small class="text-muted">Completadas</small>
+                        </div>
+                        {% if task_stats.total_estimated > 0 %}
+                        <div class="col-6">
+                            <div class="h4 mb-0 text-info">{{ task_stats.total_estimated }}</div>
+                            <small class="text-muted">Horas Estimadas</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="h4 mb-0 text-warning">{{ task_stats.total_actual }}</div>
+                            <small class="text-muted">Horas Reales</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones Rápidas -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-bolt"></i> Acciones Rápidas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'initiatives:task_create' user_story.pk %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-plus"></i> Nueva Tarea
+                        </a>
+                        <a href="{% url 'initiatives:user_story_edit' user_story.pk %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-edit"></i> Editar Historia
+                        </a>
+                        <a href="{% url 'initiatives:initiative_detail' user_story.initiative.pk %}" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-lightbulb"></i> Ver Épica
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Épica -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-lightbulb"></i> Épica Relacionada</h6>
+                </div>
+                <div class="card-body">
+                    <h6>{{ user_story.initiative.title }}</h6>
+                    <p class="text-muted small mb-2">{{ user_story.initiative.description|truncatewords:20 }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">Progreso General:</small>
+                        <span class="fw-bold">{{ user_story.initiative.progress }}%</span>
+                    </div>
+                    <div class="progress mt-1" style="height: 4px;">
+                        <div class="progress-bar bg-primary" role="progressbar" 
+                             style="width: {{ user_story.initiative.progress }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

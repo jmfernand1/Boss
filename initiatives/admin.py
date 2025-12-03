@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
     Quarter, InitiativeType, Initiative, OperationalTask, 
-    Sprint, InitiativeUpdate, InitiativeMetric
+    Sprint, InitiativeUpdate, InitiativeMetric, UserStory, Task
 )
 
 
@@ -108,3 +108,54 @@ class InitiativeMetricAdmin(admin.ModelAdmin):
     search_fields = ['metric_name', 'initiative__title']
     date_hierarchy = 'measured_at'
     ordering = ['initiative', 'metric_name']
+
+
+@admin.register(UserStory)
+class UserStoryAdmin(admin.ModelAdmin):
+    list_display = ['__str__', 'initiative', 'status', 'priority', 'story_points', 'assignee', 'sprint', 'progress_percentage']
+    list_filter = ['status', 'priority', 'story_points', 'initiative__quarter', 'sprint']
+    search_fields = ['title', 'description', 'initiative__title', 'assignee__user__first_name', 'assignee__user__last_name']
+    date_hierarchy = 'created_at'
+    ordering = ['-priority', '-created_at']
+    
+    fieldsets = (
+        ('Información General', {
+            'fields': ('initiative', 'title', 'description', 'acceptance_criteria')
+        }),
+        ('Planificación', {
+            'fields': ('story_points', 'priority', 'status', 'assignee', 'sprint')
+        }),
+        ('Fechas', {
+            'fields': ('started_at', 'completed_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    readonly_fields = ['started_at', 'completed_at']
+
+
+@admin.register(Task)
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ['__str__', 'user_story', 'task_type', 'status', 'assignee', 'estimated_hours', 'actual_hours']
+    list_filter = ['task_type', 'status', 'user_story__initiative__quarter']
+    search_fields = ['title', 'description', 'user_story__title', 'assignee__user__first_name', 'assignee__user__last_name']
+    date_hierarchy = 'created_at'
+    ordering = ['status', '-created_at']
+    
+    fieldsets = (
+        ('Información General', {
+            'fields': ('user_story', 'title', 'description', 'task_type')
+        }),
+        ('Asignación y Estado', {
+            'fields': ('status', 'assignee', 'blocked_reason')
+        }),
+        ('Tiempo', {
+            'fields': ('estimated_hours', 'actual_hours')
+        }),
+        ('Fechas', {
+            'fields': ('started_at', 'completed_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    readonly_fields = ['started_at', 'completed_at']

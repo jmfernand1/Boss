@@ -24,8 +24,12 @@
                 <span class="text-danger">*</span>
             {% endif %}
         </label>
+        
         {{ form.initiative }}
-        <div class="form-text">Solo se muestran iniciativas marcadas como operativas</div>
+        
+        <div class="form-text">
+            Solo se muestran iniciativas marcadas como operativas
+        </div>
         {% if form.initiative.errors %}
             <div class="invalid-feedback d-block">
                 {{ form.initiative.errors|join:", " }}

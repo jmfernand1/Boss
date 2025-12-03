@@ -3,77 +3,81 @@
 {% block title %}{{ title }} - BOSS{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1><i class="{{ icon|default:'fas fa-edit' }}"></i> {{ title }}</h1>
-        </div>
-        <div class="col-md-4 text-end">
-            <a href="{{ back_url }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> {% block back_text %}Volver{% endblock %}
-            </a>
-        </div>
-    </div>
+<div class="container py-5">
+    <div class="row justify-content-center fade-in">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h2 fw-bold text-primary mb-1">
+                        <i class="{{ icon|default:'fas fa-edit' }} me-2"></i>{{ title }}
+                    </h1>
+                    <p class="text-muted mb-0">Complete la información solicitada a continuación.</p>
+                </div>
+                <a href="{{ back_url }}" class="btn btn-light text-secondary fw-medium">
+                    <i class="fas fa-arrow-left me-2"></i>{% block back_text %}Volver{% endblock %}
+                </a>
+            </div>
 
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-body">
+            <!-- Form Card -->
+            <div class="card border-0 shadow-lg">
+                <div class="card-body p-4 p-md-5">
                     {% if form.errors %}
-                        <div class="alert alert-danger">
-                            <h6><i class="fas fa-exclamation-triangle"></i> Errores en el formulario:</h6>
-                            {% for field, errors in form.errors.items %}
-                                {% if field == '__all__' %}
-                                    {% for error in errors %}
-                                        <p class="mb-1">{{ error }}</p>
-                                    {% endfor %}
-                                {% else %}
-                                    <p class="mb-1"><strong>{{ field }}:</strong> {{ errors|join:", " }}</p>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
+                    <div class="alert alert-danger border-0 bg-danger bg-opacity-10 text-danger mb-4">
+                        <h6 class="fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>Por favor corrija los
+                            siguientes errores:</h6>
+                        {% for field, errors in form.errors.items %}
+                        {% if field == '__all__' %}
+                        {% for error in errors %}
+                        <p class="mb-1 small">{{ error }}</p>
+                        {% endfor %}
+                        {% else %}
+                        <p class="mb-1 small"><strong>{{ field }}:</strong> {{ errors|join:", " }}</p>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
                     {% endif %}
 
                     <form method="post" novalidate>
                         {% csrf_token %}
                         {% block form_content %}
-                            {% for field in form %}
-                                <div class="mb-3 {% if field.field.widget.input_type == 'checkbox' %}form-check{% endif %}">
-                                    {% if field.field.widget.input_type == 'checkbox' %}
-                                        {{ field }}
-                                        <label class="form-check-label" for="{{ field.id_for_label }}">
-                                            {{ field.label }}
-                                        </label>
-                                    {% else %}
-                                        <label for="{{ field.id_for_label }}" class="form-label">
-                                            {{ field.label }}
-                                            {% if field.field.required %}
-                                                <span class="text-danger">*</span>
-                                            {% endif %}
-                                        </label>
-                                        {{ field }}
-                                    {% endif %}
-                                    
-                                    {% if field.help_text %}
-                                        <div class="form-text">{{ field.help_text }}</div>
-                                    {% endif %}
-                                    
-                                    {% if field.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ field.errors|join:", " }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            {% endfor %}
+                        {% for field in form %}
+                        <div class="mb-4 {% if field.field.widget.input_type == 'checkbox' %}form-check{% endif %}">
+                            {% if field.field.widget.input_type == 'checkbox' %}
+                            {{ field }}
+                            <label class="form-check-label fw-medium" for="{{ field.id_for_label }}">
+                                {{ field.label }}
+                            </label>
+                            {% else %}
+                            <label for="{{ field.id_for_label }}" class="form-label">
+                                {{ field.label }}
+                                {% if field.field.required %}
+                                <span class="text-danger">*</span>
+                                {% endif %}
+                            </label>
+                            {{ field }}
+                            {% endif %}
+
+                            {% if field.help_text %}
+                            <div class="form-text text-muted small mt-1">{{ field.help_text }}</div>
+                            {% endif %}
+
+                            {% if field.errors %}
+                            <div class="invalid-feedback d-block mt-1">
+                                {{ field.errors|join:", " }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
                         {% endblock %}
 
-                        <div class="d-flex justify-content-between">
-                            <a href="{{ back_url }}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Cancelar
+                        <div class="d-flex justify-content-end gap-3 mt-5 pt-3 border-top">
+                            <a href="{{ back_url }}" class="btn btn-light text-secondary px-4">
+                                Cancelar
                             </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> 
-                                {% if action == 'create' %}Crear{% else %}Actualizar{% endif %}
+                            <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                <i class="fas fa-save me-2"></i>
+                                {% if action == 'create' %}Crear Registro{% else %}Guardar Cambios{% endif %}
                             </button>
                         </div>
                     </form>
@@ -86,24 +90,25 @@
 
 {% block extra_css %}
 <style>
-.form-label {
-    font-weight: 600;
-    color: var(--secondary-color);
-}
+    .form-control,
+    .form-select {
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+    }
 
-.form-control:focus,
-.form-select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(44, 62, 80, 0.25);
-}
+    .form-control:focus,
+    .form-select:focus {
+        background-color: #fff;
+    }
 
-.invalid-feedback {
-    font-size: 0.875em;
-}
+    textarea.form-control {
+        min-height: 100px;
+    }
 
-.form-check-input:checked {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-}
+    .form-check-input {
+        width: 1.2em;
+        height: 1.2em;
+        margin-top: 0.15em;
+    }
 </style>
 {% endblock %}
