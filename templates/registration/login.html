@@ -3,117 +3,92 @@
 {% block title %}Iniciar Sesión - BOSS{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center align-items-center min-vh-100">
-        <div class="col-md-5 col-lg-4">
-            <div class="text-center mb-4 fade-in">
-                <div class="avatar bg-white text-primary rounded-circle p-4 mb-3 mx-auto shadow-lg d-flex align-items-center justify-content-center"
-                    style="width: 80px; height: 80px;">
-                    <i class="fas fa-cube fa-2x"></i>
-                </div>
-                <h2 class="fw-bold text-white mb-1">BOSS</h2>
-                <p class="text-white-50">Business Operations Support System</p>
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="w-full max-w-md">
+        <!-- Logo y título -->
+        <div class="text-center mb-8">
+            <div class="mx-auto h-16 w-16 flex items-center justify-center rounded-2xl bg-primary-600 shadow-lg shadow-primary-500/30">
+                <svg class="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                </svg>
             </div>
-
-            <div class="card border-0 shadow-lg fade-in"
-                style="animation-delay: 0.1s; backdrop-filter: blur(10px); background-color: rgba(255, 255, 255, 0.95);">
-                <div class="card-body p-5">
-                    <h4 class="text-center fw-bold text-dark mb-4">Bienvenido</h4>
-
-                    {% if form.errors %}
-                    <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 small" role="alert">
-                        <i class="fas fa-exclamation-circle me-2"></i>Usuario o contraseña incorrectos.
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                    {% endif %}
-
-                    <form method="post" class="needs-validation" novalidate>
-                        {% csrf_token %}
-                        <div class="mb-4">
-                            <label for="{{ form.username.id_for_label }}"
-                                class="form-label fw-bold text-secondary small text-uppercase">Usuario</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted"><i
-                                        class="fas fa-user"></i></span>
-                                <input type="text" class="form-control bg-light border-start-0 ps-0" name="username"
-                                    id="{{ form.username.id_for_label }}" required autofocus
-                                    placeholder="Ingresa tu usuario">
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="{{ form.password.id_for_label }}"
-                                class="form-label fw-bold text-secondary small text-uppercase">Contraseña</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted"><i
-                                        class="fas fa-lock"></i></span>
-                                <input type="password" class="form-control bg-light border-start-0 ps-0" name="password"
-                                    id="{{ form.password.id_for_label }}" required placeholder="••••••••">
-                            </div>
-                        </div>
-
-                        <div class="d-grid mt-5">
-                            <button type="submit" class="btn btn-primary btn-lg shadow-sm hover-lift">
-                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
-                            </button>
-                        </div>
-
-                        <input type="hidden" name="next" value="{{ next }}">
-                    </form>
-                </div>
-                <div class="card-footer bg-light border-0 text-center py-3">
-                    <small class="text-muted">
-                        &copy; {% now "Y" %} BOSS App. Todos los derechos reservados.
-                    </small>
-                </div>
-            </div>
+            <h1 class="mt-6 text-3xl font-bold text-white">BOSS</h1>
+            <p class="mt-2 text-slate-400">Business Operations Support System</p>
         </div>
+
+        <!-- Card de login -->
+        <div class="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/10">
+            <h2 class="text-xl font-semibold text-white text-center mb-6">Bienvenido de nuevo</h2>
+            
+            {% if form.errors %}
+            <div class="mb-6 rounded-lg bg-red-500/10 border border-red-500/20 p-4">
+                <div class="flex items-center gap-3">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm text-red-300">Usuario o contraseña incorrectos.</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <form method="post" class="space-y-5">
+                {% csrf_token %}
+                
+                <div>
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-slate-300 mb-2">
+                        Usuario
+                    </label>
+                    <div class="relative">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <svg class="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                            </svg>
+                        </div>
+                        <input type="text" 
+                               name="username" 
+                               id="{{ form.username.id_for_label }}"
+                               class="block w-full rounded-lg border-0 bg-white/5 py-3 pl-10 pr-4 text-white placeholder:text-slate-500 ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-primary-500 sm:text-sm transition-all duration-150"
+                               placeholder="Ingresa tu usuario"
+                               required 
+                               autofocus>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-slate-300 mb-2">
+                        Contraseña
+                    </label>
+                    <div class="relative">
+                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                            <svg class="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                            </svg>
+                        </div>
+                        <input type="password" 
+                               name="password" 
+                               id="{{ form.password.id_for_label }}"
+                               class="block w-full rounded-lg border-0 bg-white/5 py-3 pl-10 pr-4 text-white placeholder:text-slate-500 ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-primary-500 sm:text-sm transition-all duration-150"
+                               placeholder="••••••••"
+                               required>
+                    </div>
+                </div>
+
+                <button type="submit" 
+                        class="w-full flex justify-center items-center gap-2 rounded-lg bg-primary-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-primary-500/30 hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 transition-all duration-150">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                    </svg>
+                    Iniciar Sesión
+                </button>
+
+                <input type="hidden" name="next" value="{{ next }}">
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <p class="mt-8 text-center text-sm text-slate-500">
+            &copy; {% now "Y" %} BOSS - Business Operations Support System
+        </p>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    body {
-        background: linear-gradient(135deg, #4361ee 0%, #3f37c9 100%);
-        min-height: 100vh;
-    }
-
-    .navbar,
-    footer {
-        display: none !important;
-    }
-
-    .form-control:focus {
-        background-color: #fff;
-        border-color: #4361ee;
-        box-shadow: none;
-    }
-
-    .input-group-text {
-        border-color: #ced4da;
-    }
-
-    .form-control {
-        border-color: #ced4da;
-    }
-
-    .input-group:focus-within .input-group-text {
-        border-color: #4361ee;
-        background-color: #fff;
-    }
-
-    .input-group:focus-within .form-control {
-        border-color: #4361ee;
-    }
-
-    .hover-lift {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .hover-lift:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
-    }
-</style>
 {% endblock %}

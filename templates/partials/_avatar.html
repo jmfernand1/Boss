@@ -1,0 +1,35 @@
+{% comment %}
+Avatar Component
+Usage: {% include 'partials/_avatar.html' with initials="JD" name="John Doe" %}
+Size: xs, sm, md (default), lg, xl
+{% endcomment %}
+
+<div class="relative inline-flex items-center justify-center rounded-full
+    {% if size == 'xs' %}h-6 w-6 text-xs{% endif %}
+    {% if size == 'sm' %}h-8 w-8 text-sm{% endif %}
+    {% if size == 'md' or not size %}h-10 w-10 text-sm{% endif %}
+    {% if size == 'lg' %}h-12 w-12 text-base{% endif %}
+    {% if size == 'xl' %}h-14 w-14 text-lg{% endif %}
+    {% if color == 'primary' %}bg-primary-100 text-primary-700{% endif %}
+    {% if color == 'success' %}bg-emerald-100 text-emerald-700{% endif %}
+    {% if color == 'warning' %}bg-amber-100 text-amber-700{% endif %}
+    {% if color == 'danger' %}bg-red-100 text-red-700{% endif %}
+    {% if color == 'info' %}bg-blue-100 text-blue-700{% endif %}
+    {% if not color %}bg-gradient-to-br from-primary-500 to-primary-700 text-white{% endif %}
+    font-semibold"
+    {% if name %}title="{{ name }}"{% endif %}>
+    {% if image %}
+    <img src="{{ image }}" alt="{{ name }}" class="rounded-full object-cover h-full w-full">
+    {% else %}
+    {{ initials }}
+    {% endif %}
+    {% if status %}
+    <span class="absolute bottom-0 right-0 block rounded-full ring-2 ring-white
+        {% if size == 'xs' or size == 'sm' %}h-2 w-2{% else %}h-3 w-3{% endif %}
+        {% if status == 'online' %}bg-emerald-400{% endif %}
+        {% if status == 'offline' %}bg-slate-400{% endif %}
+        {% if status == 'away' %}bg-amber-400{% endif %}
+        {% if status == 'busy' %}bg-red-400{% endif %}">
+    </span>
+    {% endif %}
+</div>

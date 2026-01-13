@@ -1,126 +1,170 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}BOSS - Gestión de Equipo{% endblock %}</title>
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        slate: {
+                            850: '#1a2234',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Heroicons -->
+    <script src="https://unpkg.com/@heroicons/vue@2.0.18/dist/cjs/index.js" defer></script>
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+    
+    <!-- Alpine.js for interactive components -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
     {% load static %}
     <link href="{% static 'css/style.css' %}" rel="stylesheet">
     
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="fas fa-users-cog"></i> BOSS
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="teamDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-users"></i> Equipo
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'team:dashboard' %}">Dashboard</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'team:employee_list' %}">Empleados</a></li>
-                            <li><a class="dropdown-item" href="{% url 'team:absence_list' %}">Ausencias</a></li>
-                            <li><a class="dropdown-item" href="{% url 'team:vacation_summary' %}">Vacaciones</a></li>
-                            <li><a class="dropdown-item" href="{% url 'team:birthday_calendar' %}">Cumpleaños</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'team:absence_type_list' %}">Tipos de Ausencia</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="initiativesDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-tasks"></i> Iniciativas
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'initiatives:dashboard' %}">Dashboard</a></li>
-                            <li><a class="dropdown-item" href="{% url 'initiatives:initiative_list' %}">Lista de Iniciativas</a></li>
-                            <li><a class="dropdown-item" href="{% url 'initiatives:operational_tasks' %}">Tareas Operativas</a></li>
-                            <li><a class="dropdown-item" href="{% url 'initiatives:sprint_board' %}">Tablero Sprint</a></li>
-                            <li><a class="dropdown-item" href="{% url 'initiatives:quarter_summary' %}">Resumen del Q</a></li>
-                        </ul>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    {% if user.is_authenticated %}
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-user-circle"></i> {{ user.get_full_name|default:user.username }}
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                {% if user.is_staff %}
-                                    <li><a class="dropdown-item" href="/admin/" target="_blank">
-                                        <i class="fas fa-cog"></i> Administración
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                {% endif %}
-                                <li>
-                                    <form method="post" action="{% url 'logout' %}" class="logout-form">
-                                        {% csrf_token %}
-                                        <button type="submit" class="dropdown-item border-0 bg-transparent w-100 text-start p-0">
-                                            <span class="d-block px-3 py-2">
-                                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                                            </span>
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">
-                                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
-                            </a>
-                        </li>
-                    {% endif %}
-                </ul>
+<body class="h-full bg-slate-50 font-sans antialiased" x-data="{ sidebarOpen: false, userMenuOpen: false }">
+    
+    {% if user.is_authenticated %}
+    <div class="min-h-full">
+        <!-- Sidebar móvil -->
+        <div x-show="sidebarOpen" 
+             x-transition:enter="transition-opacity ease-linear duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-linear duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="relative z-50 lg:hidden" 
+             role="dialog" 
+             aria-modal="true"
+             @click.away="sidebarOpen = false">
+            
+            <div class="fixed inset-0 bg-slate-900/80"></div>
+            
+            <div class="fixed inset-0 flex">
+                <div x-show="sidebarOpen"
+                     x-transition:enter="transition ease-in-out duration-300 transform"
+                     x-transition:enter-start="-translate-x-full"
+                     x-transition:enter-end="translate-x-0"
+                     x-transition:leave="transition ease-in-out duration-300 transform"
+                     x-transition:leave-start="translate-x-0"
+                     x-transition:leave-end="-translate-x-full"
+                     class="relative mr-16 flex w-full max-w-xs flex-1">
+                    
+                    <div class="absolute left-full top-0 flex w-16 justify-center pt-5">
+                        <button type="button" class="-m-2.5 p-2.5" @click="sidebarOpen = false">
+                            <span class="sr-only">Cerrar sidebar</span>
+                            <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    {% include 'partials/_sidebar.html' %}
+                </div>
             </div>
         </div>
-    </nav>
-
-    <!-- Messages -->
-    {% if messages %}
-        <div class="container mt-3">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
+        
+        <!-- Sidebar desktop -->
+        <div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+            {% include 'partials/_sidebar.html' %}
         </div>
-    {% endif %}
-
-    <!-- Main Content -->
-    <main class="py-4">
+        
+        <!-- Contenido principal -->
+        <div class="lg:pl-72">
+            <!-- Header -->
+            {% include 'partials/_header.html' %}
+            
+            <!-- Main -->
+            <main class="py-6">
+                <!-- Mensajes/Alertas -->
+                {% if messages %}
+                <div id="messages-container" class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-6">
+                    {% for message in messages %}
+                    {% include 'partials/_alert.html' with message=message %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Contenido -->
+                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+            
+            <!-- Footer -->
+            {% include 'partials/_footer.html' %}
+        </div>
+    </div>
+    {% else %}
+    <!-- Layout para usuarios no autenticados -->
+    <main class="min-h-screen">
         {% block content %}{% endblock %}
     </main>
-
-    <!-- Footer -->
-    <footer class="py-4 mt-5">
-        <div class="container text-center">
-            <p class="mb-0 text-muted">© 2025 BOSS - Sistema de Gestión de Equipo</p>
-        </div>
-    </footer>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <!-- Custom JS -->
+    {% endif %}
+    
+    <!-- Toast Container for HTMX responses -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+    
+    <!-- HTMX Configuration -->
+    <script>
+        document.body.addEventListener('htmx:configRequest', function(evt) {
+            evt.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+        
+        // Auto-dismiss alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('[data-auto-dismiss]');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            });
+        });
+        
+        // Handle HTMX after swap events
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            // Re-initialize any components after HTMX swap
+            if (evt.detail.target.id === 'modal-container') {
+                // Modal handling
+            }
+        });
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

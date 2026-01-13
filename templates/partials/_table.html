@@ -1,0 +1,41 @@
+{% comment %}
+Table Component
+Usage: Include as wrapper around table content
+{% endcomment %}
+
+<div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-900/5">
+    {% if header %}
+    <div class="border-b border-slate-200 bg-slate-50 px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-semibold text-slate-900">{{ title }}</h3>
+                {% if subtitle %}
+                <p class="mt-1 text-sm text-slate-500">{{ subtitle }}</p>
+                {% endif %}
+            </div>
+            {% if actions %}
+            <div class="flex items-center gap-3">
+                {{ actions|safe }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+                {% block table_header %}{% endblock %}
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white">
+                {% block table_body %}{% endblock %}
+            </tbody>
+        </table>
+    </div>
+    
+    {% if footer %}
+    <div class="border-t border-slate-200 bg-slate-50 px-6 py-4">
+        {{ footer|safe }}
+    </div>
+    {% endif %}
+</div>

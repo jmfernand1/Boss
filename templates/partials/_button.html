@@ -1,0 +1,38 @@
+{% comment %}
+Button Component
+Usage: {% include 'partials/_button.html' with text="Save" type="primary" %}
+Types: primary, secondary, danger, ghost
+Size: sm, md (default), lg
+{% endcomment %}
+
+{% if href %}
+<a href="{{ href }}"
+{% else %}
+<button type="{{ button_type|default:'button' }}"
+{% endif %}
+    class="inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2
+    {% if size == 'sm' %}px-3 py-1.5 text-sm{% elif size == 'lg' %}px-6 py-3 text-base{% else %}px-4 py-2 text-sm{% endif %}
+    {% if type == 'primary' %}bg-primary-600 text-white hover:bg-primary-500 focus:ring-primary-500 shadow-sm{% endif %}
+    {% if type == 'secondary' %}bg-white text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:ring-primary-500{% endif %}
+    {% if type == 'danger' %}bg-red-600 text-white hover:bg-red-500 focus:ring-red-500 shadow-sm{% endif %}
+    {% if type == 'ghost' %}text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus:ring-slate-500{% endif %}
+    {% if disabled %}opacity-50 cursor-not-allowed{% endif %}
+    {{ class }}"
+    {% if disabled %}disabled{% endif %}
+    {% if hx_post %}hx-post="{{ hx_post }}"{% endif %}
+    {% if hx_get %}hx-get="{{ hx_get }}"{% endif %}
+    {% if hx_target %}hx-target="{{ hx_target }}"{% endif %}
+    {% if hx_swap %}hx-swap="{{ hx_swap }}"{% endif %}
+    {% if hx_confirm %}hx-confirm="{{ hx_confirm }}"{% endif %}>
+    {% if icon_left %}
+    {{ icon_left|safe }}
+    {% endif %}
+    {{ text }}
+    {% if icon_right %}
+    {{ icon_right|safe }}
+    {% endif %}
+{% if href %}
+</a>
+{% else %}
+</button>
+{% endif %}

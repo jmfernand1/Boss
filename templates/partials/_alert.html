@@ -1,0 +1,77 @@
+{% comment %}
+Alert Component
+Usage: {% include 'partials/_alert.html' with message=message %}
+Message tags: success, error/danger, warning, info
+{% endcomment %}
+
+{% with tag=message.tags|default:'info' %}
+<div class="rounded-lg p-4 mb-4 
+    {% if 'success' in tag %}bg-emerald-50 border border-emerald-200{% endif %}
+    {% if 'error' in tag or 'danger' in tag %}bg-red-50 border border-red-200{% endif %}
+    {% if 'warning' in tag %}bg-amber-50 border border-amber-200{% endif %}
+    {% if 'info' in tag %}bg-blue-50 border border-blue-200{% endif %}"
+    data-auto-dismiss
+    x-data="{ show: true }"
+    x-show="show"
+    x-transition:enter="transition ease-out duration-300"
+    x-transition:enter-start="opacity-0 transform translate-y-2"
+    x-transition:enter-end="opacity-100 transform translate-y-0"
+    x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100 transform translate-y-0"
+    x-transition:leave-end="opacity-0 transform translate-y-2">
+    <div class="flex items-start gap-3">
+        <!-- Icon -->
+        <div class="flex-shrink-0">
+            {% if 'success' in tag %}
+            <svg class="h-5 w-5 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+            </svg>
+            {% elif 'error' in tag or 'danger' in tag %}
+            <svg class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+            </svg>
+            {% elif 'warning' in tag %}
+            <svg class="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+            </svg>
+            {% else %}
+            <svg class="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
+            </svg>
+            {% endif %}
+        </div>
+        
+        <!-- Content -->
+        <div class="flex-1 pt-0.5">
+            <p class="text-sm font-medium 
+                {% if 'success' in tag %}text-emerald-800{% endif %}
+                {% if 'error' in tag or 'danger' in tag %}text-red-800{% endif %}
+                {% if 'warning' in tag %}text-amber-800{% endif %}
+                {% if 'info' in tag %}text-blue-800{% endif %}">
+                {{ message }}
+            </p>
+        </div>
+        
+        <!-- Close button -->
+        <div class="flex-shrink-0">
+            <button type="button" 
+                    @click="show = false"
+                    class="inline-flex rounded-md p-1.5 
+                        {% if 'success' in tag %}text-emerald-500 hover:bg-emerald-100{% endif %}
+                        {% if 'error' in tag or 'danger' in tag %}text-red-500 hover:bg-red-100{% endif %}
+                        {% if 'warning' in tag %}text-amber-500 hover:bg-amber-100{% endif %}
+                        {% if 'info' in tag %}text-blue-500 hover:bg-blue-100{% endif %}
+                        focus:outline-none focus:ring-2 focus:ring-offset-2
+                        {% if 'success' in tag %}focus:ring-emerald-500{% endif %}
+                        {% if 'error' in tag or 'danger' in tag %}focus:ring-red-500{% endif %}
+                        {% if 'warning' in tag %}focus:ring-amber-500{% endif %}
+                        {% if 'info' in tag %}focus:ring-blue-500{% endif %}">
+                <span class="sr-only">Cerrar</span>
+                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+{% endwith %}
