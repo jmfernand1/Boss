@@ -1,445 +1,291 @@
 {% extends 'base.html' %}
 
-{% block title %}Lista de Iniciativas{% endblock %}
+{% block title %}Iniciativas - BOSS{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <!-- Header -->
-    <div class="row mb-4 fade-in">
-        <div class="col-md-8">
-            <h1 class="display-5 fw-bold text-primary mb-1">
-                <i class="fas fa-list me-2"></i>Lista de Iniciativas
-            </h1>
-            <p class="text-muted lead mb-0">Gestione y monitoree el progreso de las iniciativas.</p>
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="sm:flex sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Iniciativas</h1>
+            <p class="mt-2 text-sm text-slate-500">Gestiona y monitorea el progreso de las iniciativas del equipo.</p>
         </div>
-        <div class="col-md-4 text-end d-flex align-items-center justify-content-end gap-2">
-            <a href="{% url 'initiatives:dashboard' %}" class="btn btn-light text-secondary shadow-sm">
-                <i class="fas fa-arrow-left me-2"></i>Dashboard
+        <div class="mt-4 sm:ml-4 sm:mt-0 flex gap-3">
+            <a href="{% url 'initiatives:dashboard' %}" 
+               class="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                Dashboard
             </a>
-            <a href="#" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#createModal">
-                <i class="fas fa-plus me-2"></i>Nueva Iniciativa
+            <a href="{% url 'initiatives:initiative_create' %}" 
+               class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 transition-colors">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Nueva Iniciativa
             </a>
-        </div>
-    </div>
-
-    <!-- Filtros -->
-    <div class="card border-0 shadow-sm mb-4 fade-in" style="animation-delay: 0.1s;">
-        <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-            <h5 class="mb-0 text-primary fw-bold"><i class="fas fa-filter me-2"></i>Filtros</h5>
-        </div>
-        <div class="card-body p-4">
-            <form method="get" class="row g-3">
-                <div class="col-md-2">
-                    <label for="quarter" class="form-label small text-uppercase text-muted fw-bold">Periodo (Q)</label>
-                    <select name="quarter" id="quarter" class="form-select">
-                        <option value="">Todos</option>
-                        {% for q in quarters %}
-                        <option value="{{ q.id }}" {% if selected_quarter|add:"0" == q.id %}selected{% endif %}>
-                            {{ q }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="status" class="form-label small text-uppercase text-muted fw-bold">Estado</label>
-                    <select name="status" id="status" class="form-select">
-                        <option value="">Todos</option>
-                        {% for code, name in status_choices %}
-                        <option value="{{ code }}" {% if selected_status == code %}selected{% endif %}>
-                            {{ name }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="priority" class="form-label small text-uppercase text-muted fw-bold">Prioridad</label>
-                    <select name="priority" id="priority" class="form-select">
-                        <option value="">Todas</option>
-                        {% for code, name in priority_choices %}
-                        <option value="{{ code }}" {% if selected_priority == code %}selected{% endif %}>
-                            {{ name }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="owner" class="form-label small text-uppercase text-muted fw-bold">Responsable</label>
-                    <select name="owner" id="owner" class="form-select">
-                        <option value="">Todos</option>
-                        {% for employee in employees %}
-                        <option value="{{ employee.id }}" {% if selected_owner|add:"0" == employee.id %}selected{% endif %}>
-                            {{ employee.full_name }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="type" class="form-label small text-uppercase text-muted fw-bold">Tipo</label>
-                    <select name="type" id="type" class="form-select">
-                        <option value="">Todos</option>
-                        {% for type in initiative_types %}
-                        <option value="{{ type.id }}" {% if selected_type|add:"0" == type.id %}selected{% endif %}>
-                            {{ type.name }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label for="search" class="form-label small text-uppercase text-muted fw-bold">Buscar</label>
-                    <input type="text" name="search" id="search" class="form-control" value="{{ search }}"
-                        placeholder="Título...">
-                </div>
-                <div class="col-12 d-flex justify-content-end gap-2 mt-3">
-                    <a href="{% url 'initiatives:initiative_list' %}" class="btn btn-light text-secondary">
-                        <i class="fas fa-times me-2"></i>Limpiar
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search me-2"></i>Filtrar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Lista de Iniciativas -->
-    <div class="card border-0 shadow-lg fade-in" style="animation-delay: 0.2s;">
-        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold text-dark">
-                <i class="fas fa-tasks me-2 text-primary"></i>Iniciativas
-            </h5>
-            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">{{ initiatives.count }}
-                Total</span>
-        </div>
-        <div class="card-body p-0">
-            {% if initiatives %}
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-4 py-3">Título</th>
-                            <th class="py-3">Tipo</th>
-                            <th class="py-3">Responsable</th>
-                            <th class="py-3">Estado</th>
-                            <th class="py-3">Prioridad</th>
-                            <th class="py-3" style="width: 15%;">Progreso</th>
-                            <th class="py-3">Fecha Objetivo</th>
-                            <th class="py-3">Periodo</th>
-                            <th class="pe-4 py-3 text-end">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for initiative in initiatives %}
-                        <tr
-                            class="{% if initiative.status == 'BLOCKED' %}bg-danger bg-opacity-10{% elif initiative.status == 'COMPLETED' %}bg-success bg-opacity-10{% endif %}">
-                            <td class="ps-4">
-                                <div class="d-flex align-items-center">
-                                    {% if initiative.is_operational %}
-                                    <div class="me-3 text-warning" data-bs-toggle="tooltip" title="Operativo">
-                                        <i class="fas fa-cogs"></i>
-                                    </div>
-                                    {% endif %}
-                                    <div>
-                                        <div class="fw-bold text-dark">{{ initiative.title }}</div>
-                                        {% if initiative.description %}
-                                        <div class="small text-muted text-truncate" style="max-width: 200px;">{{
-                                            initiative.description }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="badge rounded-pill fw-normal"
-                                    style="background-color: {{ initiative.initiative_type.color }}; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">
-                                    {{ initiative.initiative_type.name }}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar-xs bg-primary bg-opacity-10 text-primary rounded-circle me-2 small fw-bold d-flex align-items-center justify-content-center"
-                                        style="width: 24px; height: 24px;">
-                                        {{ initiative.owner.first_name|first }}{{ initiative.owner.last_name|first }}
-                                    </div>
-                                    <span class="small">{{ initiative.owner.full_name }}</span>
-                                </div>
-                            </td>
-                            <td>
-                                {% if initiative.status == 'BACKLOG' %}
-                                <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">Backlog</span>
-                                {% elif initiative.status == 'PLANNED' %}
-                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">Planeado</span>
-                                {% elif initiative.status == 'IN_PROGRESS' %}
-                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill">En Progreso</span>
-                                {% elif initiative.status == 'BLOCKED' %}
-                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill">Bloqueado</span>
-                                {% elif initiative.status == 'COMPLETED' %}
-                                <span class="badge bg-info bg-opacity-10 text-info rounded-pill">Completado</span>
-                                {% elif initiative.status == 'CANCELLED' %}
-                                <span class="badge bg-dark bg-opacity-10 text-dark rounded-pill">Cancelado</span>
-                                {% else %}
-                                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill">{{ initiative.get_status_display }}</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if initiative.priority == 'CRITICAL' %}
-                                <span class="badge bg-danger rounded-pill">Crítica</span>
-                                {% elif initiative.priority == 'HIGH' %}
-                                <span class="badge bg-warning text-dark rounded-pill">Alta</span>
-                                {% elif initiative.priority == 'MEDIUM' %}
-                                <span class="badge bg-primary rounded-pill">Media</span>
-                                {% else %}
-                                <span class="badge bg-secondary rounded-pill">Baja</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="progress flex-grow-1 me-2"
-                                        style="height: 6px; background-color: #e9ecef;">
-                                        <div class="progress-bar rounded-pill 
-                                                {% if initiative.progress < 25 %}bg-danger
-                                                {% elif initiative.progress < 50 %}bg-warning
-                                                {% elif initiative.progress < 75 %}bg-info
-                                                {% else %}bg-success{% endif %}"
-                                            style="width: {{ initiative.progress }}%">
-                                        </div>
-                                    </div>
-                                    <small class="fw-bold text-muted">{{ initiative.progress }}%</small>
-                                </div>
-                            </td>
-                            <td>
-                                {% if initiative.target_date %}
-                                <span
-                                    class="{% if initiative.target_date < today and initiative.status != 'COMPLETED' %}text-danger fw-bold{% endif %}">
-                                    {{ initiative.target_date|date:"d M" }}
-                                </span>
-                                {% if initiative.target_date < today and initiative.status != 'COMPLETED' %} <i
-                                    class="fas fa-exclamation-circle text-danger ms-1" title="Vencido"></i>
-                                    {% endif %}
-                                    {% else %}
-                                    <span class="text-muted small">-</span>
-                                    {% endif %}
-                            </td>
-                            <td><span class="badge bg-light text-dark border">{{ initiative.quarter }}</span></td>
-                            <td class="pe-4 text-end">
-                                <div class="btn-group shadow-sm" role="group">
-                                    <a href="{% url 'initiatives:initiative_detail' initiative.pk %}"
-                                        class="btn btn-sm btn-light text-primary" title="Ver detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{% url 'initiatives:initiative_edit' initiative.pk %}"
-                                        class="btn btn-sm btn-light text-secondary" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a href="{% url 'initiatives:initiative_delete' initiative.pk %}"
-                                        class="btn btn-sm btn-light text-danger" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="text-center py-5">
-                <div class="avatar bg-light rounded-circle p-4 mb-3 mx-auto"
-                    style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-tasks fa-2x text-muted opacity-50"></i>
-                </div>
-                <h5 class="text-muted">No se encontraron iniciativas</h5>
-                <p class="text-muted small mb-4">No hay iniciativas que coincidan con los filtros seleccionados.</p>
-                <a href="#" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#createModal">
-                    <i class="fas fa-plus me-2"></i>Crear Primera Iniciativa
-                </a>
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Modal para crear iniciativa -->
-<div class="modal fade" id="createModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title fw-bold"><i class="fas fa-plus me-2"></i>Nueva Iniciativa</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<!-- Filters -->
+<div class="bg-white rounded-xl shadow-sm ring-1 ring-slate-900/5 mb-6 overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100">
+        <h3 class="text-sm font-semibold text-slate-900 flex items-center gap-2">
+            <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+            </svg>
+            Filtros
+        </h3>
+    </div>
+    <form method="get" class="p-6"
+          hx-get="{% url 'initiatives:initiative_list' %}"
+          hx-target="#initiatives-table"
+          hx-swap="outerHTML"
+          hx-trigger="change delay:300ms from:select, input delay:500ms from:#search">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
+            <div>
+                <label for="quarter" class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Periodo (Q)</label>
+                <select name="quarter" id="quarter" class="block w-full rounded-lg border-0 py-2.5 pl-3 pr-10 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-primary-600 sm:text-sm">
+                    <option value="">Todos</option>
+                    {% for q in quarters %}
+                    <option value="{{ q.id }}" {% if selected_quarter|add:"0" == q.id %}selected{% endif %}>{{ q }}</option>
+                    {% endfor %}
+                </select>
             </div>
-            <div class="modal-body p-4">
-                <form id="quickInitiativeForm">
-                    {% csrf_token %}
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label for="title" class="form-label fw-bold text-secondary">Título <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="title" name="title" required
-                                placeholder="Nombre de la iniciativa">
-                        </div>
-                        <div class="col-12">
-                            <label for="description" class="form-label fw-bold text-secondary">Descripción</label>
-                            <textarea class="form-control" id="description" name="description" rows="3"
-                                placeholder="Breve descripción..."></textarea>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="initiative_type" class="form-label fw-bold text-secondary">Tipo <span
-                                    class="text-danger">*</span></label>
-                            <select class="form-select" id="initiative_type" name="initiative_type" required>
-                                <option value="">Seleccionar tipo...</option>
-                                {% for type in initiative_types %}
-                                <option value="{{ type.id }}">{{ type.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="owner" class="form-label fw-bold text-secondary">Responsable <span
-                                    class="text-danger">*</span></label>
-                            <select class="form-select" id="owner" name="owner" required>
-                                <option value="">Seleccionar responsable...</option>
-                                {% for employee in employees %}
-                                <option value="{{ employee.id }}">{{ employee.full_name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="priority" class="form-label fw-bold text-secondary">Prioridad</label>
-                            <select class="form-select" id="priority" name="priority">
-                                {% for code, name in priority_choices %}
-                                <option value="{{ code }}" {% if code == 'MEDIUM' %}selected{% endif %}>{{ name }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-6 d-flex align-items-center">
-                            <div class="form-check mt-4">
-                                <input class="form-check-input" type="checkbox" id="is_operational"
-                                    name="is_operational">
-                                <label class="form-check-label fw-medium" for="is_operational">
-                                    ¿Es operativo?
-                                </label>
+            <div>
+                <label for="status" class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Estado</label>
+                <select name="status" id="status" class="block w-full rounded-lg border-0 py-2.5 pl-3 pr-10 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-primary-600 sm:text-sm">
+                    <option value="">Todos</option>
+                    {% for code, name in status_choices %}
+                    <option value="{{ code }}" {% if selected_status == code %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="priority" class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Prioridad</label>
+                <select name="priority" id="priority" class="block w-full rounded-lg border-0 py-2.5 pl-3 pr-10 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-primary-600 sm:text-sm">
+                    <option value="">Todas</option>
+                    {% for code, name in priority_choices %}
+                    <option value="{{ code }}" {% if selected_priority == code %}selected{% endif %}>{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="owner" class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Responsable</label>
+                <select name="owner" id="owner" class="block w-full rounded-lg border-0 py-2.5 pl-3 pr-10 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-primary-600 sm:text-sm">
+                    <option value="">Todos</option>
+                    {% for employee in employees %}
+                    <option value="{{ employee.id }}" {% if selected_owner|add:"0" == employee.id %}selected{% endif %}>{{ employee.full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="type" class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Tipo</label>
+                <select name="type" id="type" class="block w-full rounded-lg border-0 py-2.5 pl-3 pr-10 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-primary-600 sm:text-sm">
+                    <option value="">Todos</option>
+                    {% for type in initiative_types %}
+                    <option value="{{ type.id }}" {% if selected_type|add:"0" == type.id %}selected{% endif %}>{{ type.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="search" class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Buscar</label>
+                <div class="relative">
+                    <input type="text" name="search" id="search" value="{{ search }}"
+                           class="block w-full rounded-lg border-0 py-2.5 pl-10 pr-4 text-slate-900 ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-primary-600 sm:text-sm"
+                           placeholder="Título...">
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4 flex justify-end gap-3">
+            <a href="{% url 'initiatives:initiative_list' %}" class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Limpiar filtros
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Initiatives Table -->
+<div id="initiatives-table" class="bg-white rounded-xl shadow-sm ring-1 ring-slate-900/5 overflow-hidden">
+    <div class="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-slate-900">Lista de Iniciativas</h3>
+        <span class="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-1 text-xs font-semibold text-primary-700">
+            {{ initiatives.count }} Total
+        </span>
+    </div>
+    
+    {% if initiatives %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="py-3.5 pl-6 pr-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Título</th>
+                    <th class="px-3 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Tipo</th>
+                    <th class="px-3 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Responsable</th>
+                    <th class="px-3 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Estado</th>
+                    <th class="px-3 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Prioridad</th>
+                    <th class="px-3 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide" style="width: 140px;">Progreso</th>
+                    <th class="px-3 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Fecha Obj.</th>
+                    <th class="relative py-3.5 pl-3 pr-6">
+                        <span class="sr-only">Acciones</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+                {% for initiative in initiatives %}
+                <tr class="hover:bg-slate-50 transition-colors {% if initiative.status == 'BLOCKED' %}bg-red-50/50{% elif initiative.status == 'COMPLETED' %}bg-emerald-50/50{% endif %}">
+                    <td class="py-4 pl-6 pr-3">
+                        <div class="flex items-center gap-3">
+                            {% if initiative.is_operational %}
+                            <span class="inline-flex items-center justify-center h-6 w-6 rounded bg-amber-100" title="Operativo">
+                                <svg class="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0015 0m-15 0a7.5 7.5 0 1115 0m-15 0H3m16.5 0H21" />
+                                </svg>
+                            </span>
+                            {% endif %}
+                            <div class="min-w-0">
+                                <a href="{% url 'initiatives:initiative_detail' initiative.pk %}" class="font-semibold text-slate-900 hover:text-primary-600">
+                                    {{ initiative.title }}
+                                </a>
+                                {% if initiative.description %}
+                                <p class="text-xs text-slate-500 truncate max-w-[200px]">{{ initiative.description }}</p>
+                                {% endif %}
                             </div>
                         </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-light text-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary shadow-sm" onclick="createInitiative()">
-                    <i class="fas fa-save me-2"></i>Crear Iniciativa
-                </button>
-            </div>
+                    </td>
+                    <td class="px-3 py-4">
+                        <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium text-white"
+                              style="background-color: {{ initiative.initiative_type.color }};">
+                            {{ initiative.initiative_type.name }}
+                        </span>
+                    </td>
+                    <td class="px-3 py-4">
+                        <div class="flex items-center gap-2">
+                            <div class="h-7 w-7 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center flex-shrink-0">
+                                <span class="text-xs font-semibold text-white">{{ initiative.owner.first_name|slice:":1" }}{{ initiative.owner.last_name|slice:":1" }}</span>
+                            </div>
+                            <span class="text-sm text-slate-600 truncate max-w-[120px]">{{ initiative.owner.full_name }}</span>
+                        </div>
+                    </td>
+                    <td class="px-3 py-4">
+                        {% if initiative.status == 'BACKLOG' %}
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                            <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>Backlog
+                        </span>
+                        {% elif initiative.status == 'PLANNED' %}
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-primary-50 px-2.5 py-1 text-xs font-medium text-primary-700">
+                            <span class="h-1.5 w-1.5 rounded-full bg-primary-500"></span>Planeado
+                        </span>
+                        {% elif initiative.status == 'IN_PROGRESS' %}
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>En Progreso
+                        </span>
+                        {% elif initiative.status == 'BLOCKED' %}
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700">
+                            <span class="h-1.5 w-1.5 rounded-full bg-red-500"></span>Bloqueado
+                        </span>
+                        {% elif initiative.status == 'COMPLETED' %}
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
+                            <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>Completado
+                        </span>
+                        {% elif initiative.status == 'CANCELLED' %}
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
+                            <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>Cancelado
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-4">
+                        {% if initiative.priority == 'CRITICAL' %}
+                        <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">Crítica</span>
+                        {% elif initiative.priority == 'HIGH' %}
+                        <span class="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">Alta</span>
+                        {% elif initiative.priority == 'MEDIUM' %}
+                        <span class="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-1 text-xs font-semibold text-primary-700">Media</span>
+                        {% else %}
+                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Baja</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                <div class="h-full rounded-full {% if initiative.progress < 25 %}bg-red-500{% elif initiative.progress < 50 %}bg-amber-500{% elif initiative.progress < 75 %}bg-blue-500{% else %}bg-emerald-500{% endif %}"
+                                     style="width: {{ initiative.progress }}%"></div>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-600 w-10 text-right">{{ initiative.progress }}%</span>
+                        </div>
+                    </td>
+                    <td class="px-3 py-4 whitespace-nowrap">
+                        {% if initiative.target_date %}
+                        <span class="text-sm {% if initiative.target_date < today and initiative.status != 'COMPLETED' %}text-red-600 font-semibold{% else %}text-slate-600{% endif %}">
+                            {{ initiative.target_date|date:"d M" }}
+                            {% if initiative.target_date < today and initiative.status != 'COMPLETED' %}
+                            <svg class="inline-block h-4 w-4 text-red-500 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                            {% endif %}
+                        </span>
+                        {% else %}
+                        <span class="text-sm text-slate-400">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="relative py-4 pl-3 pr-6 text-right">
+                        <div class="flex items-center justify-end gap-1">
+                            <a href="{% url 'initiatives:initiative_detail' initiative.pk %}" 
+                               class="inline-flex items-center justify-center rounded-lg p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+                               title="Ver detalles">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </a>
+                            <a href="{% url 'initiatives:initiative_edit' initiative.pk %}" 
+                               class="inline-flex items-center justify-center rounded-lg p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                               title="Editar">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                </svg>
+                            </a>
+                            <a href="{% url 'initiatives:initiative_delete' initiative.pk %}" 
+                               class="inline-flex items-center justify-center rounded-lg p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                               title="Eliminar">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                </svg>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-12 px-6">
+        <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
+        </svg>
+        <h3 class="mt-4 text-base font-semibold text-slate-900">No se encontraron iniciativas</h3>
+        <p class="mt-2 text-sm text-slate-500">No hay iniciativas que coincidan con los filtros seleccionados.</p>
+        <div class="mt-6">
+            <a href="{% url 'initiatives:initiative_create' %}" 
+               class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 transition-colors">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Crear Primera Iniciativa
+            </a>
         </div>
     </div>
+    {% endif %}
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    function createInitiative() {
-        const form = document.getElementById('quickInitiativeForm');
-        const formData = new FormData(form);
-
-        // Validación básica
-        if (!formData.get('title') || !formData.get('initiative_type') || !formData.get('owner')) {
-            alert('Por favor, completa todos los campos requeridos.');
-            return;
-        }
-
-        // Deshabilitar botón para evitar doble envío
-        const submitBtn = document.querySelector('#createModal .btn-primary');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creando...';
-
-        // Obtener CSRF token
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-        // Enviar datos vía AJAX
-        fetch('{% url "initiatives:quick_initiative_create" %}', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': csrfToken,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams(formData)
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Mostrar mensaje de éxito
-                    showAlert('success', data.message);
-
-                    // Cerrar modal y limpiar formulario
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('createModal'));
-                    modal.hide();
-                    form.reset();
-
-                    // Recargar la página para mostrar la nueva iniciativa
-                    setTimeout(() => {
-                        if (data.redirect_url) {
-                            window.location.href = data.redirect_url;
-                        } else {
-                            window.location.reload();
-                        }
-                    }, 1000);
-
-                } else {
-                    // Mostrar errores
-                    showAlert('danger', data.message);
-                    if (data.errors) {
-                        console.error('Errores de formulario:', data.errors);
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showAlert('danger', 'Error al crear la iniciativa. Por favor, intenta nuevamente.');
-            })
-            .finally(() => {
-                // Restaurar botón
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-            });
-    }
-
-    function showAlert(type, message) {
-        // Crear alerta Bootstrap
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} alert-dismissible fade show shadow-sm border-0`;
-        alertDiv.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-
-        // Insertar al inicio del contenedor
-        const container = document.querySelector('.container');
-        container.insertBefore(alertDiv, container.firstChild);
-
-        // Auto-ocultar después de 5 segundos
-        setTimeout(() => {
-            if (alertDiv.parentNode) {
-                alertDiv.remove();
-            }
-        }, 5000);
-    }
-
-    // Filtro automático al cambiar selects
-    document.addEventListener('DOMContentLoaded', function () {
-        const filters = ['quarter', 'status', 'priority', 'owner', 'type'];
-
-        filters.forEach(function (filterId) {
-            const element = document.getElementById(filterId);
-            if (element) {
-                element.addEventListener('change', function () {
-                    this.form.submit();
-                });
-            }
-        });
-
-        // Initialize tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
-        })
-    });
-</script>
 {% endblock %}
