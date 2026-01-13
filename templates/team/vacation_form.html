@@ -3,141 +3,171 @@
 {% block back_text %}Volver a Vacaciones{% endblock %}
 
 {% block form_content %}
-<div class="row">
-    <div class="col-md-6">
-        <h5 class="border-bottom pb-2 mb-3">
-            <i class="fas fa-user"></i> Empleado y Periodo
-        </h5>
-        
-        <div class="mb-3">
-            <label for="{{ form.employee.id_for_label }}" class="form-label">
-                {{ form.employee.label }} <span class="text-danger">*</span>
-            </label>
-            {{ form.employee }}
-            {% if form.employee.errors %}
-                <div class="invalid-feedback d-block">{{ form.employee.errors|join:", " }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="mb-3">
-            <label for="{{ form.year.id_for_label }}" class="form-label">
-                {{ form.year.label }} <span class="text-danger">*</span>
-            </label>
-            {{ form.year }}
-            <div class="form-text">Año para el control de vacaciones</div>
-            {% if form.year.errors %}
-                <div class="invalid-feedback d-block">{{ form.year.errors|join:", " }}</div>
-            {% endif %}
-        </div>
-    </div>
-    
-    <div class="col-md-6">
-        <h5 class="border-bottom pb-2 mb-3">
-            <i class="fas fa-umbrella-beach"></i> Control de Días
-        </h5>
-        
-        <div class="mb-3">
-            <label for="{{ form.days_entitled.id_for_label }}" class="form-label">
-                {{ form.days_entitled.label }} <span class="text-danger">*</span>
-            </label>
-            {{ form.days_entitled }}
-            <div class="form-text">Días de vacaciones que le corresponden en el año</div>
-            {% if form.days_entitled.errors %}
-                <div class="invalid-feedback d-block">{{ form.days_entitled.errors|join:", " }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="mb-3">
-            <label for="{{ form.days_taken.id_for_label }}" class="form-label">
-                {{ form.days_taken.label }} <span class="text-danger">*</span>
-            </label>
-            {{ form.days_taken }}
-            <div class="form-text">Días de vacaciones ya tomados</div>
-            {% if form.days_taken.errors %}
-                <div class="invalid-feedback d-block">{{ form.days_taken.errors|join:", " }}</div>
-            {% endif %}
-        </div>
-        
-        <!-- Mostrar días pendientes calculados -->
-        <div class="alert alert-info pending-days-info" style="display: none;">
-            <strong>Días Pendientes:</strong> <span class="pending-days">0</span>
+<div class="space-y-8">
+    <!-- Empleado y Periodo -->
+    <div>
+        <h3 class="text-base font-semibold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-200">
+            <svg class="h-5 w-5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+            Empleado y Periodo
+        </h3>
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+                <label for="{{ form.employee.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-2">
+                    {{ form.employee.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.employee }}
+                {% if form.employee.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.employee.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label for="{{ form.year.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-2">
+                    {{ form.year.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.year }}
+                <p class="mt-1 text-xs text-slate-500">Año para el control de vacaciones</p>
+                {% if form.year.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.year.errors|join:", " }}</p>
+                {% endif %}
+            </div>
         </div>
     </div>
-</div>
 
-<div class="row mt-3">
-    <div class="col-12">
-        <h5 class="border-bottom pb-2 mb-3">
-            <i class="fas fa-sticky-note"></i> Notas Adicionales
-        </h5>
+    <!-- Control de Días -->
+    <div>
+        <h3 class="text-base font-semibold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-200">
+            <svg class="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+            </svg>
+            Control de Días
+        </h3>
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+                <label for="{{ form.days_entitled.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-2">
+                    {{ form.days_entitled.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.days_entitled }}
+                <p class="mt-1 text-xs text-slate-500">Días de vacaciones que le corresponden en el año</p>
+                {% if form.days_entitled.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.days_entitled.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+            
+            <div>
+                <label for="{{ form.days_taken.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-2">
+                    {{ form.days_taken.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.days_taken }}
+                <p class="mt-1 text-xs text-slate-500">Días de vacaciones ya tomados</p>
+                {% if form.days_taken.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.days_taken.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+        </div>
         
-        <div class="mb-3">
-            <label for="{{ form.notes.id_for_label }}" class="form-label">
+        <!-- Días pendientes calculados -->
+        <div id="pending-days-info" class="mt-4 hidden">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex items-center gap-3">
+                    <svg class="h-5 w-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="text-sm text-blue-800">
+                        <strong>Días Pendientes:</strong> <span id="pending-days-value">0</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notas -->
+    <div>
+        <h3 class="text-base font-semibold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-200">
+            <svg class="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+            </svg>
+            Notas Adicionales
+        </h3>
+        <div class="mt-4">
+            <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-2">
                 {{ form.notes.label }}
             </label>
             {{ form.notes }}
-            <div class="form-text">Observaciones o comentarios sobre las vacaciones</div>
+            <p class="mt-1 text-xs text-slate-500">Observaciones o comentarios sobre las vacaciones</p>
             {% if form.notes.errors %}
-                <div class="invalid-feedback d-block">{{ form.notes.errors|join:", " }}</div>
+            <p class="mt-1 text-sm text-red-600">{{ form.notes.errors|join:", " }}</p>
             {% endif %}
         </div>
     </div>
 </div>
 
-{% if form.errors %}
-    {% for error in form.non_field_errors %}
-        <div class="alert alert-danger">
-            {{ error }}
+{% if form.non_field_errors %}
+<div class="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+    <div class="flex items-start gap-3">
+        <svg class="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+        </svg>
+        <div>
+            {% for error in form.non_field_errors %}
+            <p class="text-sm text-red-700">{{ error }}</p>
+            {% endfor %}
         </div>
-    {% endfor %}
+    </div>
+</div>
 {% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-$(document).ready(function() {
-    // Calcular días pendientes automáticamente
+document.addEventListener('DOMContentLoaded', function() {
+    const entitledInput = document.querySelector('[name="days_entitled"]');
+    const takenInput = document.querySelector('[name="days_taken"]');
+    const pendingInfo = document.getElementById('pending-days-info');
+    const pendingValue = document.getElementById('pending-days-value');
+    
     function calculatePendingDays() {
-        const entitled = parseInt($('#{{ form.days_entitled.id_for_label }}').val()) || 0;
-        const taken = parseInt($('#{{ form.days_taken.id_for_label }}').val()) || 0;
+        const entitled = parseInt(entitledInput.value) || 0;
+        const taken = parseInt(takenInput.value) || 0;
         const pending = entitled - taken;
         
         if (entitled > 0 || taken > 0) {
-            $('.pending-days').text(pending);
-            $('.pending-days-info').show();
+            pendingValue.textContent = pending;
+            pendingInfo.classList.remove('hidden');
             
-            // Cambiar color basado en el resultado
-            const alertBox = $('.pending-days-info');
-            alertBox.removeClass('alert-info alert-warning alert-danger');
+            const infoBox = pendingInfo.querySelector('div');
+            infoBox.className = 'border rounded-lg p-4 flex items-center gap-3';
             
             if (pending < 0) {
-                alertBox.addClass('alert-danger');
+                infoBox.classList.add('bg-red-50', 'border-red-200');
+                infoBox.querySelector('svg').classList.remove('text-blue-500', 'text-amber-500');
+                infoBox.querySelector('svg').classList.add('text-red-500');
+                infoBox.querySelector('span').classList.remove('text-blue-800', 'text-amber-800');
+                infoBox.querySelector('span').classList.add('text-red-800');
             } else if (pending > 10) {
-                alertBox.addClass('alert-warning');
+                infoBox.classList.add('bg-amber-50', 'border-amber-200');
+                infoBox.querySelector('svg').classList.remove('text-blue-500', 'text-red-500');
+                infoBox.querySelector('svg').classList.add('text-amber-500');
+                infoBox.querySelector('span').classList.remove('text-blue-800', 'text-red-800');
+                infoBox.querySelector('span').classList.add('text-amber-800');
             } else {
-                alertBox.addClass('alert-info');
+                infoBox.classList.add('bg-blue-50', 'border-blue-200');
+                infoBox.querySelector('svg').classList.remove('text-amber-500', 'text-red-500');
+                infoBox.querySelector('svg').classList.add('text-blue-500');
+                infoBox.querySelector('span').classList.remove('text-amber-800', 'text-red-800');
+                infoBox.querySelector('span').classList.add('text-blue-800');
             }
         } else {
-            $('.pending-days-info').hide();
-        }
-        
-        // Validar que los días tomados no excedan los correspondientes
-        if (taken > entitled && entitled > 0) {
-            $('#{{ form.days_taken.id_for_label }}').addClass('is-invalid');
-            if ($('.days-taken-error').length === 0) {
-                $('#{{ form.days_taken.id_for_label }}').after(
-                    '<div class="invalid-feedback d-block days-taken-error">Los días tomados no pueden ser mayores a los correspondientes.</div>'
-                );
-            }
-        } else {
-            $('#{{ form.days_taken.id_for_label }}').removeClass('is-invalid');
-            $('.days-taken-error').remove();
+            pendingInfo.classList.add('hidden');
         }
     }
     
-    $('#{{ form.days_entitled.id_for_label }}, #{{ form.days_taken.id_for_label }}').on('input change', calculatePendingDays);
+    if (entitledInput) entitledInput.addEventListener('input', calculatePendingDays);
+    if (takenInput) takenInput.addEventListener('input', calculatePendingDays);
     
-    // Calcular inicial
+    // Initial calculation
     calculatePendingDays();
 });
 </script>
