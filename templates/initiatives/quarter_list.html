@@ -1,95 +1,128 @@
 {% extends 'base.html' %}
 
-{% block title %}Gestión de Quarters{% endblock %}
+{% block title %}Gestión de Quarters - BOSS{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1><i class="fas fa-calendar-alt"></i> Gestión de Quarters</h1>
-            <p class="lead">Administra los periodos trimestrales del sistema</p>
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="sm:flex sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Gestión de Quarters</h1>
+            <p class="mt-2 text-sm text-slate-500">Administra los periodos trimestrales del sistema.</p>
         </div>
-        <div class="col-md-4 text-end">
-            <a href="{% url 'initiatives:dashboard' %}" class="btn btn-secondary me-2">
-                <i class="fas fa-arrow-left"></i> Dashboard
+        <div class="mt-4 sm:ml-4 sm:mt-0 flex gap-2">
+            <a href="{% url 'initiatives:dashboard' %}" 
+               class="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                Dashboard
             </a>
-            <a href="{% url 'initiatives:quarter_create' %}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Nuevo Quarter
+            <a href="{% url 'initiatives:quarter_create' %}" 
+               class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 transition-colors">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Nuevo Quarter
             </a>
         </div>
     </div>
+</div>
 
-    <!-- Lista de Quarters -->
-    <div class="row">
-        {% for quarter_stat in quarter_stats %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100 {% if quarter_stat.quarter.is_active %}border-success{% endif %}">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">{{ quarter_stat.quarter }}</h5>
-                    {% if quarter_stat.quarter.is_active %}
-                        <span class="badge bg-success">Activo</span>
-                    {% endif %}
+<!-- Quarters Grid -->
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
+    {% for quarter_stat in quarter_stats %}
+    <div class="bg-white rounded-xl shadow-sm ring-1 {% if quarter_stat.quarter.is_active %}ring-emerald-500{% else %}ring-slate-900/5{% endif %} overflow-hidden">
+        <div class="border-b border-slate-100 px-6 py-4 flex items-center justify-between {% if quarter_stat.quarter.is_active %}bg-emerald-50{% endif %}">
+            <h3 class="text-lg font-semibold text-slate-900">{{ quarter_stat.quarter }}</h3>
+            {% if quarter_stat.quarter.is_active %}
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Activo
+            </span>
+            {% endif %}
+        </div>
+        
+        <div class="p-6">
+            <div class="grid grid-cols-3 gap-4 text-center mb-4">
+                <div>
+                    <p class="text-2xl font-bold text-primary-600">{{ quarter_stat.total_initiatives }}</p>
+                    <p class="text-xs text-slate-500">Iniciativas</p>
                 </div>
-                <div class="card-body">
-                    <div class="row text-center mb-3">
-                        <div class="col-4">
-                            <h4 class="text-primary">{{ quarter_stat.total_initiatives }}</h4>
-                            <small class="text-muted">Iniciativas</small>
-                        </div>
-                        <div class="col-4">
-                            <h4 class="text-success">{{ quarter_stat.completed_initiatives }}</h4>
-                            <small class="text-muted">Completadas</small>
-                        </div>
-                        <div class="col-4">
-                            <h4 class="text-info">{{ quarter_stat.avg_progress|floatformat:0 }}%</h4>
-                            <small class="text-muted">Progreso</small>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <small class="text-muted">Periodo:</small>
-                        <div>{{ quarter_stat.quarter.start_date|date:"d/m/Y" }} - {{ quarter_stat.quarter.end_date|date:"d/m/Y" }}</div>
-                    </div>
-                    
-                    {% if quarter_stat.total_initiatives > 0 %}
-                        <div class="progress mb-3" style="height: 8px;">
-                            {% widthratio quarter_stat.completed_initiatives quarter_stat.total_initiatives 100 as completion_percentage %}
-                            <div class="progress-bar bg-success" style="width: {{ completion_percentage }}%"></div>
-                        </div>
-                    {% endif %}
+                <div>
+                    <p class="text-2xl font-bold text-emerald-600">{{ quarter_stat.completed_initiatives }}</p>
+                    <p class="text-xs text-slate-500">Completadas</p>
                 </div>
-                <div class="card-footer">
-                    <div class="btn-group w-100" role="group">
-                        <a href="{% url 'initiatives:quarter_summary_detail' quarter_stat.quarter.pk %}" 
-                           class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-eye"></i> Ver
-                        </a>
-                        <a href="{% url 'initiatives:quarter_edit' quarter_stat.quarter.pk %}" 
-                           class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-edit"></i> Editar
-                        </a>
-                        <a href="{% url 'initiatives:quarter_delete' quarter_stat.quarter.pk %}" 
-                           class="btn btn-outline-danger btn-sm">
-                            <i class="fas fa-trash"></i> Eliminar
-                        </a>
-                    </div>
+                <div>
+                    <p class="text-2xl font-bold text-blue-600">{{ quarter_stat.avg_progress|floatformat:0 }}%</p>
+                    <p class="text-xs text-slate-500">Progreso</p>
                 </div>
             </div>
+            
+            <div class="mb-4">
+                <p class="text-xs text-slate-500 uppercase tracking-wide mb-1">Periodo</p>
+                <p class="text-sm text-slate-700">{{ quarter_stat.quarter.start_date|date:"d/m/Y" }} - {{ quarter_stat.quarter.end_date|date:"d/m/Y" }}</p>
+            </div>
+            
+            {% if quarter_stat.total_initiatives > 0 %}
+            <div class="mb-2">
+                <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+                    <span>Completado</span>
+                    <span>{% widthratio quarter_stat.completed_initiatives quarter_stat.total_initiatives 100 %}%</span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                    {% widthratio quarter_stat.completed_initiatives quarter_stat.total_initiatives 100 as completion_percentage %}
+                    <div class="h-2 rounded-full bg-emerald-500" style="width: {{ completion_percentage }}%"></div>
+                </div>
+            </div>
+            {% endif %}
         </div>
-        {% empty %}
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body text-center py-5">
-                    <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
-                    <h5>No hay quarters configurados</h5>
-                    <p class="text-muted">Crea el primer quarter para comenzar a organizar las iniciativas por períodos.</p>
-                    <a href="{% url 'initiatives:quarter_create' %}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Crear Primer Quarter
+        
+        <div class="border-t border-slate-100 px-6 py-3 bg-slate-50 flex items-center justify-center gap-2">
+            <a href="{% url 'initiatives:quarter_summary_detail' quarter_stat.quarter.pk %}" 
+               class="inline-flex items-center justify-center rounded-lg p-2 text-slate-500 hover:text-primary-600 hover:bg-white transition-colors"
+               title="Ver">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </a>
+            <a href="{% url 'initiatives:quarter_edit' quarter_stat.quarter.pk %}" 
+               class="inline-flex items-center justify-center rounded-lg p-2 text-slate-500 hover:text-amber-600 hover:bg-white transition-colors"
+               title="Editar">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                </svg>
+            </a>
+            <a href="{% url 'initiatives:quarter_delete' quarter_stat.quarter.pk %}" 
+               class="inline-flex items-center justify-center rounded-lg p-2 text-slate-500 hover:text-red-600 hover:bg-white transition-colors"
+               title="Eliminar">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                </svg>
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-full">
+        <div class="bg-white rounded-xl shadow-sm ring-1 ring-slate-900/5 overflow-hidden">
+            <div class="text-center py-12 px-6">
+                <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+                <h3 class="mt-4 text-base font-semibold text-slate-900">No hay quarters configurados</h3>
+                <p class="mt-2 text-sm text-slate-500">Crea el primer quarter para comenzar a organizar las iniciativas por períodos.</p>
+                <div class="mt-6">
+                    <a href="{% url 'initiatives:quarter_create' %}" 
+                       class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 transition-colors">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        Crear Primer Quarter
                     </a>
                 </div>
             </div>
         </div>
-        {% endfor %}
     </div>
+    {% endfor %}
 </div>
 {% endblock %}
