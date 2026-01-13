@@ -1,330 +1,321 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ employee.full_name }} - Detalle de Empleado{% endblock %}
+{% block title %}{{ employee.full_name }} - BOSS{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <!-- Header -->
-    <div class="row mb-4 fade-in">
-        <div class="col-md-8">
-            <div class="d-flex align-items-center">
-                <div class="avatar bg-primary text-white rounded-circle p-4 me-4 d-flex align-items-center justify-content-center shadow-sm"
-                    style="width: 80px; height: 80px; font-size: 2rem; font-weight: bold;">
-                    {{ employee.first_name|first }}{{ employee.last_name|first }}
-                </div>
-                <div>
-                    <h1 class="display-6 fw-bold text-dark mb-1">
-                        {{ employee.full_name }}
-                    </h1>
-                    <p class="text-muted lead mb-0">{{ employee.position }} &bull; {{ employee.department }}</p>
-                </div>
+<!-- Header -->
+<div class="mb-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <div class="h-16 w-16 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-lg">
+                <span class="text-2xl font-bold text-white">{{ employee.first_name|slice:":1"|upper }}{{ employee.last_name|slice:":1"|upper }}</span>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900">{{ employee.full_name }}</h1>
+                <p class="text-slate-500">{{ employee.position }} • {{ employee.department }}</p>
             </div>
         </div>
-        <div class="col-md-4 text-end d-flex align-items-center justify-content-end">
-            <div class="btn-group shadow-sm" role="group">
-                <a href="{% url 'team:employee_list' %}" class="btn btn-light text-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>Volver
-                </a>
-                <a href="{% url 'team:employee_edit' employee.pk %}" class="btn btn-light text-primary">
-                    <i class="fas fa-edit me-2"></i>Editar
-                </a>
-                <a href="{% url 'team:employee_delete' employee.pk %}" class="btn btn-light text-danger">
-                    <i class="fas fa-trash me-2"></i>Eliminar
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="row fade-in" style="animation-delay: 0.1s;">
-        <!-- Información Personal -->
-        <div class="col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-                    <h5 class="mb-0 text-primary fw-bold"><i class="fas fa-user-circle me-2"></i>Información Personal
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    <table class="table table-borderless mb-0">
-                        <tr>
-                            <td class="text-muted fw-medium w-40 ps-0">ID Empleado:</td>
-                            <td class="fw-bold text-dark">#{{ employee.employee_id }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted fw-medium ps-0">Email:</td>
-                            <td class="text-dark">{{ employee.user.email }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted fw-medium ps-0">Teléfono:</td>
-                            <td class="text-dark">{{ employee.phone|default:"No registrado" }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted fw-medium ps-0">Móvil:</td>
-                            <td class="text-dark">{{ employee.mobile|default:"No registrado" }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted fw-medium ps-0">Fecha de Nacimiento:</td>
-                            <td class="text-dark">
-                                {{ employee.birth_date|date:"d/m/Y" }}
-                                <span class="badge bg-light text-secondary ms-2">{{ employee.age }} años</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted fw-medium ps-0">Estado:</td>
-                            <td>
-                                {% if employee.is_active %}
-                                <span class="badge bg-success bg-opacity-10 text-success rounded-pill">Activo</span>
-                                {% else %}
-                                <span
-                                    class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill">Inactivo</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Información Laboral -->
-        <div class="col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-                    <h5 class="mb-0 text-info fw-bold"><i class="fas fa-briefcase me-2"></i>Información Laboral</h5>
-                </div>
-                <div class="card-body p-4">
-                    <table class="table table-borderless mb-0">
-                        <tr>
-                            <td class="text-muted fw-medium w-40 ps-0">Cargo:</td>
-                            <td class="fw-bold text-dark">{{ employee.position }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted fw-medium ps-0">Departamento:</td>
-                            <td class="text-dark">{{ employee.department }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted fw-medium ps-0">Fecha de Ingreso:</td>
-                            <td class="text-dark">{{ employee.hire_date|date:"d/m/Y" }}</td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted fw-medium ps-0">Antigüedad:</td>
-                            <td class="text-dark">{{ employee.years_of_service }} año{{
-                                employee.years_of_service|pluralize }}</td>
-                        </tr>
-                    </table>
-
-                    {% if employee.emergency_contact %}
-                    <div class="mt-4 pt-3 border-top">
-                        <h6 class="text-muted fw-bold small text-uppercase mb-3"><i
-                                class="fas fa-phone-alt me-2"></i>Contacto de Emergencia</h6>
-                        <div class="d-flex align-items-center bg-light p-3 rounded">
-                            <div class="avatar-sm bg-warning bg-opacity-10 text-warning rounded-circle p-2 me-3">
-                                <i class="fas fa-user-shield"></i>
-                            </div>
-                            <div>
-                                <div class="fw-bold text-dark">{{ employee.emergency_contact }}</div>
-                                <div class="small text-muted">Tel: {{ employee.emergency_phone|default:"No registrado"
-                                    }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tabs para información adicional -->
-    <div class="card border-0 shadow-lg fade-in" style="animation-delay: 0.2s;">
-        <div class="card-header bg-white border-bottom-0 pt-4 px-4">
-            <ul class="nav nav-tabs card-header-tabs" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link active fw-medium" data-bs-toggle="tab" href="#ausencias">
-                        <i class="fas fa-calendar-times me-2"></i>Historial de Ausencias
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link fw-medium" data-bs-toggle="tab" href="#vacaciones">
-                        <i class="fas fa-umbrella-beach me-2"></i>Control de Vacaciones
-                    </a>
-                </li>
-                {% if employee.notes %}
-                <li class="nav-item">
-                    <a class="nav-link fw-medium" data-bs-toggle="tab" href="#notas">
-                        <i class="fas fa-sticky-note me-2"></i>Notas
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
-        </div>
-        <div class="card-body p-4">
-            <div class="tab-content">
-                <!-- Tab Ausencias -->
-                <div class="tab-pane fade show active" id="ausencias">
-                    {% if absences %}
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="ps-3 border-0 rounded-start">Tipo</th>
-                                    <th class="border-0">Fecha Inicio</th>
-                                    <th class="border-0">Fecha Fin</th>
-                                    <th class="border-0">Días</th>
-                                    <th class="pe-3 border-0 rounded-end">Motivo</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for absence in absences %}
-                                <tr>
-                                    <td class="ps-3">
-                                        <span class="badge rounded-pill"
-                                            style="background-color: {{ absence.absence_type.color }}; color: #fff;">
-                                            {{ absence.absence_type.name }}
-                                        </span>
-                                    </td>
-                                    <td>{{ absence.start_date|date:"d/m/Y" }}</td>
-                                    <td>{{ absence.end_date|date:"d/m/Y" }}</td>
-                                    <td><span class="fw-bold">{{ absence.duration_days }}</span></td>
-                                    <td class="pe-3 text-muted">{{ absence.reason|default:"-" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="text-center mt-3">
-                        <a href="{% url 'team:absence_list' %}?employee={{ employee.pk }}"
-                            class="btn btn-sm btn-outline-primary rounded-pill px-4">
-                            Ver todas las ausencias
-                        </a>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-4">
-                        <div class="avatar bg-light rounded-circle p-3 mb-3 mx-auto"
-                            style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-calendar-check text-muted opacity-50 fa-lg"></i>
-                        </div>
-                        <p class="text-muted mb-0">No hay ausencias registradas para este empleado.</p>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Tab Vacaciones -->
-                <div class="tab-pane fade" id="vacaciones">
-                    {% if vacation_records %}
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="ps-3 border-0 rounded-start">Año</th>
-                                    <th class="border-0">Días Correspondientes</th>
-                                    <th class="border-0">Días Tomados</th>
-                                    <th class="border-0">Días Pendientes</th>
-                                    <th class="pe-3 border-0 rounded-end">Notas</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for vacation in vacation_records %}
-                                <tr {% if vacation.has_many_pending_days %}class="bg-warning bg-opacity-10"{% endif %}>
-                                    <td class="ps-3"><strong>{{ vacation.year }}</strong></td>
-                                    <td>{{ vacation.days_entitled }}</td>
-                                    <td>{{ vacation.days_taken }}</td>
-                                    <td>
-                                        <strong
-                                            class="{% if vacation.days_pending %}text-success{% else %}text-muted{% endif %}">
-                                            {{ vacation.days_pending }}
-                                        </strong>
-                                    </td>
-                                    <td class="pe-3 text-muted">{{ vacation.notes|default:"-" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-4">
-                        <div class="avatar bg-light rounded-circle p-3 mb-3 mx-auto"
-                            style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-umbrella-beach text-muted opacity-50 fa-lg"></i>
-                        </div>
-                        <p class="text-muted mb-0">No hay registros de vacaciones para este empleado.</p>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Tab Notas -->
-                {% if employee.notes %}
-                <div class="tab-pane fade" id="notas">
-                    <div class="p-3 bg-light rounded border">
-                        {{ employee.notes|linebreaks }}
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Acciones Rápidas -->
-    <div class="row mt-5 fade-in" style="animation-delay: 0.3s;">
-        <div class="col-12">
-            <h5 class="mb-3 fw-bold text-secondary">Acciones Rápidas</h5>
-            <div class="d-flex gap-3 flex-wrap">
-                <a href="{% url 'team:absence_create' %}?employee={{ employee.pk }}"
-                    class="btn btn-white border shadow-sm hover-lift d-flex align-items-center p-3">
-                    <div class="avatar-sm bg-warning bg-opacity-10 text-warning rounded-circle p-2 me-3">
-                        <i class="fas fa-calendar-plus"></i>
-                    </div>
-                    <div class="text-start">
-                        <div class="fw-bold text-dark">Registrar Ausencia</div>
-                        <div class="small text-muted">Nueva falta o permiso</div>
-                    </div>
-                </a>
-                <a href="{% url 'team:vacation_create' %}?employee={{ employee.pk }}"
-                    class="btn btn-white border shadow-sm hover-lift d-flex align-items-center p-3">
-                    <div class="avatar-sm bg-success bg-opacity-10 text-success rounded-circle p-2 me-3">
-                        <i class="fas fa-umbrella-beach"></i>
-                    </div>
-                    <div class="text-start">
-                        <div class="fw-bold text-dark">Actualizar Vacaciones</div>
-                        <div class="small text-muted">Ajustar saldo anual</div>
-                    </div>
-                </a>
-                <a href="{% url 'initiatives:initiative_list' %}?owner={{ employee.pk }}"
-                    class="btn btn-white border shadow-sm hover-lift d-flex align-items-center p-3">
-                    <div class="avatar-sm bg-primary bg-opacity-10 text-primary rounded-circle p-2 me-3">
-                        <i class="fas fa-tasks"></i>
-                    </div>
-                    <div class="text-start">
-                        <div class="fw-bold text-dark">Ver Iniciativas</div>
-                        <div class="small text-muted">Proyectos asignados</div>
-                    </div>
-                </a>
-            </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'team:employee_list' %}" 
+               class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+                </svg>
+                Volver
+            </a>
+            <a href="{% url 'team:employee_edit' employee.pk %}" 
+               class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-500 transition-colors">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                </svg>
+                Editar
+            </a>
+            <a href="{% url 'team:employee_delete' employee.pk %}" 
+               class="inline-flex items-center justify-center rounded-lg p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+               title="Eliminar">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                </svg>
+            </a>
         </div>
     </div>
 </div>
 
-<style>
-    .hover-lift {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
+<!-- Info Cards -->
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-8">
+    <!-- Información Personal -->
+    <div class="bg-white rounded-xl shadow-sm ring-1 ring-slate-900/5 overflow-hidden">
+        <div class="border-b border-slate-100 px-6 py-4">
+            <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                <svg class="h-5 w-5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+                Información Personal
+            </h2>
+        </div>
+        <div class="p-6">
+            <dl class="space-y-4">
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-slate-500">ID Empleado</dt>
+                    <dd class="text-sm font-semibold text-slate-900">#{{ employee.employee_id }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-slate-500">Email</dt>
+                    <dd class="text-sm text-slate-900">{{ employee.user.email }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-slate-500">Teléfono</dt>
+                    <dd class="text-sm text-slate-900">{{ employee.phone|default:"No registrado" }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-slate-500">Móvil</dt>
+                    <dd class="text-sm text-slate-900">{{ employee.mobile|default:"No registrado" }}</dd>
+                </div>
+                <div class="flex justify-between items-center">
+                    <dt class="text-sm font-medium text-slate-500">Fecha de Nacimiento</dt>
+                    <dd class="text-sm text-slate-900 flex items-center gap-2">
+                        {{ employee.birth_date|date:"d/m/Y" }}
+                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                            {{ employee.age }} años
+                        </span>
+                    </dd>
+                </div>
+                <div class="flex justify-between items-center">
+                    <dt class="text-sm font-medium text-slate-500">Estado</dt>
+                    <dd>
+                        {% if employee.is_active %}
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Activo
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                            <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>Inactivo
+                        </span>
+                        {% endif %}
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
 
-    .hover-lift:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
-    }
+    <!-- Información Laboral -->
+    <div class="bg-white rounded-xl shadow-sm ring-1 ring-slate-900/5 overflow-hidden">
+        <div class="border-b border-slate-100 px-6 py-4">
+            <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                <svg class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" />
+                </svg>
+                Información Laboral
+            </h2>
+        </div>
+        <div class="p-6">
+            <dl class="space-y-4">
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-slate-500">Cargo</dt>
+                    <dd class="text-sm font-semibold text-slate-900">{{ employee.position }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-slate-500">Departamento</dt>
+                    <dd class="text-sm text-slate-900">{{ employee.department }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-slate-500">Fecha de Ingreso</dt>
+                    <dd class="text-sm text-slate-900">{{ employee.hire_date|date:"d/m/Y" }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-sm font-medium text-slate-500">Antigüedad</dt>
+                    <dd class="text-sm text-slate-900">{{ employee.years_of_service }} año{{ employee.years_of_service|pluralize }}</dd>
+                </div>
+            </dl>
+            
+            {% if employee.emergency_contact %}
+            <div class="mt-6 pt-6 border-t border-slate-100">
+                <h3 class="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                    <svg class="h-4 w-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                    </svg>
+                    Contacto de Emergencia
+                </h3>
+                <div class="bg-amber-50 rounded-lg p-4">
+                    <p class="font-semibold text-slate-900">{{ employee.emergency_contact }}</p>
+                    <p class="text-sm text-slate-600">Tel: {{ employee.emergency_phone|default:"No registrado" }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 
-    .btn-white {
-        background-color: #fff;
-    }
-</style>
-{% endblock %}
+<!-- Tabs Content -->
+<div class="bg-white rounded-xl shadow-sm ring-1 ring-slate-900/5 overflow-hidden" x-data="{ activeTab: 'ausencias' }">
+    <!-- Tab Headers -->
+    <div class="border-b border-slate-200">
+        <nav class="flex -mb-px px-6" aria-label="Tabs">
+            <button @click="activeTab = 'ausencias'" 
+                    :class="activeTab === 'ausencias' ? 'border-primary-500 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'"
+                    class="whitespace-nowrap py-4 px-4 border-b-2 font-medium text-sm transition-colors">
+                Historial de Ausencias
+            </button>
+            <button @click="activeTab = 'vacaciones'" 
+                    :class="activeTab === 'vacaciones' ? 'border-primary-500 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'"
+                    class="whitespace-nowrap py-4 px-4 border-b-2 font-medium text-sm transition-colors">
+                Control de Vacaciones
+            </button>
+            {% if employee.notes %}
+            <button @click="activeTab = 'notas'" 
+                    :class="activeTab === 'notas' ? 'border-primary-500 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'"
+                    class="whitespace-nowrap py-4 px-4 border-b-2 font-medium text-sm transition-colors">
+                Notas
+            </button>
+            {% endif %}
+        </nav>
+    </div>
+    
+    <!-- Tab Panels -->
+    <div class="p-6">
+        <!-- Ausencias Tab -->
+        <div x-show="activeTab === 'ausencias'">
+            {% if absences %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Tipo</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Fecha Inicio</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Fecha Fin</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Días</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Motivo</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for absence in absences %}
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-4 py-3">
+                                <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium text-white"
+                                      style="background-color: {{ absence.absence_type.color }};">
+                                    {{ absence.absence_type.name }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-sm text-slate-600">{{ absence.start_date|date:"d/m/Y" }}</td>
+                            <td class="px-4 py-3 text-sm text-slate-600">{{ absence.end_date|date:"d/m/Y" }}</td>
+                            <td class="px-4 py-3 text-sm font-semibold text-slate-900">{{ absence.duration_days }}</td>
+                            <td class="px-4 py-3 text-sm text-slate-500">{{ absence.reason|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4 text-center">
+                <a href="{% url 'team:absence_list' %}?employee={{ employee.pk }}" 
+                   class="inline-flex items-center gap-2 text-sm font-semibold text-primary-600 hover:text-primary-500">
+                    Ver todas las ausencias
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                </a>
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <svg class="mx-auto h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+                <p class="mt-4 text-sm text-slate-500">No hay ausencias registradas para este empleado.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Vacaciones Tab -->
+        <div x-show="activeTab === 'vacaciones'" x-cloak>
+            {% if vacation_records %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Año</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Días Correspondientes</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Días Tomados</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Días Pendientes</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Notas</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for vacation in vacation_records %}
+                        <tr class="hover:bg-slate-50 {% if vacation.has_many_pending_days %}bg-amber-50{% endif %}">
+                            <td class="px-4 py-3 text-sm font-semibold text-slate-900">{{ vacation.year }}</td>
+                            <td class="px-4 py-3 text-sm text-slate-600">{{ vacation.days_entitled }}</td>
+                            <td class="px-4 py-3 text-sm text-slate-600">{{ vacation.days_taken }}</td>
+                            <td class="px-4 py-3 text-sm font-semibold {% if vacation.days_pending > 0 %}text-emerald-600{% else %}text-slate-400{% endif %}">
+                                {{ vacation.days_pending }}
+                            </td>
+                            <td class="px-4 py-3 text-sm text-slate-500">{{ vacation.notes|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <svg class="mx-auto h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                </svg>
+                <p class="mt-4 text-sm text-slate-500">No hay registros de vacaciones para este empleado.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Notas Tab -->
+        {% if employee.notes %}
+        <div x-show="activeTab === 'notas'" x-cloak>
+            <div class="bg-slate-50 rounded-lg p-4 prose prose-sm max-w-none">
+                {{ employee.notes|linebreaks }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
 
-{% block extra_js %}
-<script>
-    $(document).ready(function () {
-        // Activar tabs
-        var triggerTabList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tab"]'));
-        triggerTabList.forEach(function (triggerEl) {
-            new bootstrap.Tab(triggerEl);
-        });
-    });
-</script>
+<!-- Quick Actions -->
+<div class="mt-8">
+    <h3 class="text-lg font-semibold text-slate-900 mb-4">Acciones Rápidas</h3>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <a href="{% url 'team:absence_create' %}?employee={{ employee.pk }}" 
+           class="flex items-center gap-4 rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-900/5 hover:shadow-md transition-all">
+            <div class="h-12 w-12 rounded-lg bg-amber-100 flex items-center justify-center">
+                <svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
+                </svg>
+            </div>
+            <div>
+                <h4 class="text-sm font-semibold text-slate-900">Registrar Ausencia</h4>
+                <p class="text-xs text-slate-500">Nueva falta o permiso</p>
+            </div>
+        </a>
+        
+        <a href="{% url 'team:vacation_create' %}?employee={{ employee.pk }}" 
+           class="flex items-center gap-4 rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-900/5 hover:shadow-md transition-all">
+            <div class="h-12 w-12 rounded-lg bg-emerald-100 flex items-center justify-center">
+                <svg class="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                </svg>
+            </div>
+            <div>
+                <h4 class="text-sm font-semibold text-slate-900">Actualizar Vacaciones</h4>
+                <p class="text-xs text-slate-500">Ajustar saldo anual</p>
+            </div>
+        </a>
+        
+        <a href="{% url 'initiatives:initiative_list' %}?owner={{ employee.pk }}" 
+           class="flex items-center gap-4 rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-900/5 hover:shadow-md transition-all">
+            <div class="h-12 w-12 rounded-lg bg-primary-100 flex items-center justify-center">
+                <svg class="h-6 w-6 text-primary-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
+                </svg>
+            </div>
+            <div>
+                <h4 class="text-sm font-semibold text-slate-900">Ver Iniciativas</h4>
+                <p class="text-xs text-slate-500">Proyectos asignados</p>
+            </div>
+        </a>
+    </div>
+</div>
 {% endblock %}

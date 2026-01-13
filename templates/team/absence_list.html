@@ -1,234 +1,264 @@
 {% extends 'base.html' %}
 
-{% block title %}Lista de Ausencias - BOSS{% endblock %}
+{% block title %}Ausencias - BOSS{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1><i class="fas fa-calendar-times"></i> Lista de Ausencias</h1>
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="sm:flex sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Gestión de Ausencias</h1>
+            <p class="mt-2 text-sm text-slate-500">Registro y control de ausencias del personal.</p>
         </div>
-        <div class="col-md-4 text-end">
-            <div class="btn-group" role="group">
-                <a href="{% url 'team:absence_create' %}" class="btn btn-success">
-                    <i class="fas fa-plus"></i> Nueva Ausencia
-                </a>
-                <a href="{% url 'team:quick_absence' %}" class="btn btn-outline-success">
-                    <i class="fas fa-plus-circle"></i> Registro Rápido
-                </a>
-                <a href="{% url 'team:absence_type_list' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-tags"></i> Tipos
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filtros -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Empleado</label>
-                    <select name="employee" class="form-select">
-                        <option value="">Todos</option>
-                        {% for emp in employees %}
-                            <option value="{{ emp.pk }}" {% if emp.pk == selected_employee|add:"0" %}selected{% endif %}>
-                                {{ emp.full_name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Tipo de Ausencia</label>
-                    <select name="type" class="form-select">
-                        <option value="">Todos</option>
-                        {% for type in absence_types %}
-                            <option value="{{ type.pk }}" {% if type.pk == selected_type|add:"0" %}selected{% endif %}>
-                                {{ type.name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Desde</label>
-                    <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Hasta</label>
-                    <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary me-2">
-                        <i class="fas fa-search"></i> Filtrar
-                    </button>
-                    <a href="{% url 'team:absence_list' %}" class="btn btn-secondary">
-                        <i class="fas fa-times"></i>
-                    </a>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Calendario Visual (Vista rápida del mes actual) -->
-    <div class="card mb-4">
-        <div class="card-header bg-info text-white">
-            <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Vista del Mes Actual</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4">
-                    <h6><i class="fas fa-user-times text-warning"></i> Ausencias Actuales</h6>
-                    <p class="display-6 text-warning">
-                        {{ absences|length|default:"0" }}
-                    </p>
-                </div>
-                <div class="col-md-8">
-                    <h6>Leyenda de Tipos</h6>
-                    <div class="d-flex flex-wrap gap-2">
-                        {% for type in absence_types %}
-                        <span class="badge" style="background-color: {{ type.color }}">
-                            {{ type.name }}
-                        </span>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Lista de Ausencias -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0">Registro de Ausencias</h5>
-        </div>
-        <div class="card-body">
-            {% if absences %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Empleado</th>
-                                <th>Tipo</th>
-                                <th>Fecha Inicio</th>
-                                <th>Fecha Fin</th>
-                                <th>Días</th>
-                                <th>Motivo</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for absence in absences %}
-                            <tr>
-                                <td>
-                                    <a href="{% url 'team:employee_detail' absence.employee.pk %}">
-                                        {{ absence.employee.full_name }}
-                                    </a>
-                                    <br>
-                                    <small class="text-muted">{{ absence.employee.position }}</small>
-                                </td>
-                                <td>
-                                    <span class="badge" style="background-color: {{ absence.absence_type.color }}">
-                                        {{ absence.absence_type.name }}
-                                    </span>
-                                </td>
-                                <td>{{ absence.start_date|date:"d/m/Y" }}</td>
-                                <td>{{ absence.end_date|date:"d/m/Y" }}</td>
-                                <td>
-                                    <strong>{{ absence.duration_days }}</strong>
-                                </td>
-                                <td>
-                                    {% if absence.reason %}
-                                        <span title="{{ absence.reason }}" data-bs-toggle="tooltip">
-                                            {{ absence.reason|truncatewords:5 }}
-                                        </span>
-                                    {% else %}
-                                        <span class="text-muted">-</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% now "Y-m-d" as today %}
-                                    {% if absence.start_date|date:"Y-m-d" > today %}
-                                        <span class="badge bg-info">Futura</span>
-                                    {% elif absence.end_date|date:"Y-m-d" < today %}
-                                        <span class="badge bg-secondary">Pasada</span>
-                                    {% else %}
-                                        <span class="badge bg-warning">En curso</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    <div class="btn-group" role="group">
-                                        <a href="{% url 'team:absence_edit' absence.pk %}" 
-                                           class="btn btn-sm btn-outline-primary" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a href="{% url 'team:absence_delete' absence.pk %}" 
-                                           class="btn btn-sm btn-outline-danger" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Resumen por tipo -->
-                <div class="mt-4">
-                    <h6>Resumen por Tipo de Ausencia</h6>
-                    <div class="row">
-                        {% regroup absences by absence_type as absences_by_type %}
-                        {% for type_group in absences_by_type %}
-                        <div class="col-md-3 mb-2">
-                            <div class="card text-center">
-                                <div class="card-body p-2">
-                                    <span class="badge mb-1" style="background-color: {{ type_group.grouper.color }}">
-                                        {{ type_group.grouper.name }}
-                                    </span>
-                                    <p class="mb-0 h5">{{ type_group.list|length }}</p>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">No se encontraron ausencias con los filtros aplicados.</p>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Exportar -->
-    <div class="row mt-3">
-        <div class="col-12 text-end">
-            <button class="btn btn-outline-secondary" onclick="window.print()">
-                <i class="fas fa-print"></i> Imprimir
-            </button>
-            <button class="btn btn-outline-success" onclick="exportToExcel()">
-                <i class="fas fa-file-excel"></i> Exportar Excel
-            </button>
+        <div class="mt-4 sm:ml-4 sm:mt-0 flex gap-2">
+            <a href="{% url 'team:quick_absence' %}" 
+               class="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors">
+                <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                </svg>
+                Registro Rápido
+            </a>
+            <a href="{% url 'team:absence_create' %}" 
+               class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 transition-colors">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Nueva Ausencia
+            </a>
+            <a href="{% url 'team:absence_type_list' %}" 
+               class="inline-flex items-center justify-center rounded-lg p-2.5 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors"
+               title="Gestionar Tipos">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
+                </svg>
+            </a>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script>
-$(document).ready(function() {
-    // Activar tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-});
+<!-- Filters -->
+<div class="bg-white rounded-xl shadow-sm ring-1 ring-slate-900/5 mb-6 overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-100">
+        <h3 class="text-sm font-semibold text-slate-900 flex items-center gap-2">
+            <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+            </svg>
+            Filtros
+        </h3>
+    </div>
+    <form method="get" class="p-6">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div>
+                <label for="employee" class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Empleado</label>
+                <select name="employee" id="employee" class="block w-full rounded-lg border-0 py-2.5 pl-3 pr-10 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-primary-600 sm:text-sm">
+                    <option value="">Todos</option>
+                    {% for emp in employees %}
+                    <option value="{{ emp.pk }}" {% if emp.pk == selected_employee|add:"0" %}selected{% endif %}>{{ emp.full_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="type" class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Tipo</label>
+                <select name="type" id="type" class="block w-full rounded-lg border-0 py-2.5 pl-3 pr-10 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-primary-600 sm:text-sm">
+                    <option value="">Todos</option>
+                    {% for type in absence_types %}
+                    <option value="{{ type.pk }}" {% if type.pk == selected_type|add:"0" %}selected{% endif %}>{{ type.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="date_from" class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Desde</label>
+                <input type="date" name="date_from" id="date_from" value="{{ date_from }}"
+                       class="block w-full rounded-lg border-0 py-2.5 px-3 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-primary-600 sm:text-sm">
+            </div>
+            <div>
+                <label for="date_to" class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Hasta</label>
+                <input type="date" name="date_to" id="date_to" value="{{ date_to }}"
+                       class="block w-full rounded-lg border-0 py-2.5 px-3 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-primary-600 sm:text-sm">
+            </div>
+            <div class="flex items-end gap-2">
+                <button type="submit" 
+                        class="flex-1 inline-flex justify-center items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 transition-colors">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                    </svg>
+                    Filtrar
+                </button>
+                <a href="{% url 'team:absence_list' %}" 
+                   class="inline-flex justify-center items-center rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
 
-function exportToExcel() {
-    // Implementación simplificada de exportación
-    alert('Función de exportación en desarrollo');
-}
-</script>
+<!-- Stats Summary -->
+<div class="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-6">
+    <div class="bg-white rounded-xl p-4 shadow-sm ring-1 ring-slate-900/5">
+        <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                <svg class="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-slate-900">{{ absences|length|default:"0" }}</p>
+                <p class="text-xs text-slate-500">Total Registros</p>
+            </div>
+        </div>
+    </div>
+    {% for type in absence_types|slice:":3" %}
+    <div class="bg-white rounded-xl p-4 shadow-sm ring-1 ring-slate-900/5">
+        <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg flex items-center justify-center" style="background-color: {{ type.color }}20;">
+                <span class="h-3 w-3 rounded-full" style="background-color: {{ type.color }};"></span>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-slate-900">
+                    {% regroup absences by absence_type as absences_by_type %}
+                    {% for group in absences_by_type %}
+                        {% if group.grouper == type %}{{ group.list|length }}{% endif %}
+                    {% empty %}
+                    0
+                    {% endfor %}
+                </p>
+                <p class="text-xs text-slate-500 truncate max-w-[100px]">{{ type.name }}</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Legend -->
+<div class="mb-6">
+    <div class="flex flex-wrap gap-2">
+        {% for type in absence_types %}
+        <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium text-white"
+              style="background-color: {{ type.color }};">
+            {{ type.name }}
+        </span>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Absence List -->
+<div class="bg-white rounded-xl shadow-sm ring-1 ring-slate-900/5 overflow-hidden">
+    <div class="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-slate-900">Registro de Ausencias</h3>
+        <div class="flex items-center gap-2">
+            <button onclick="window.print()" 
+                    class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-700">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
+                </svg>
+                Imprimir
+            </button>
+        </div>
+    </div>
+    
+    {% if absences %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="py-3.5 pl-6 pr-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Empleado</th>
+                    <th class="px-3 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Tipo</th>
+                    <th class="px-3 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Fecha Inicio</th>
+                    <th class="px-3 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Fecha Fin</th>
+                    <th class="px-3 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Días</th>
+                    <th class="px-3 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Estado</th>
+                    <th class="px-3 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Motivo</th>
+                    <th class="relative py-3.5 pl-3 pr-6">
+                        <span class="sr-only">Acciones</span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+                {% for absence in absences %}
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="py-4 pl-6 pr-3">
+                        <a href="{% url 'team:employee_detail' absence.employee.pk %}" class="flex items-center gap-3 group">
+                            <div class="h-8 w-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center flex-shrink-0">
+                                <span class="text-xs font-semibold text-white">{{ absence.employee.first_name|slice:":1" }}{{ absence.employee.last_name|slice:":1" }}</span>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-slate-900 group-hover:text-primary-600">{{ absence.employee.full_name }}</p>
+                                <p class="text-xs text-slate-500">{{ absence.employee.position }}</p>
+                            </div>
+                        </a>
+                    </td>
+                    <td class="px-3 py-4">
+                        <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium text-white"
+                              style="background-color: {{ absence.absence_type.color }};">
+                            {{ absence.absence_type.name }}
+                        </span>
+                    </td>
+                    <td class="px-3 py-4 text-sm text-slate-600">{{ absence.start_date|date:"d/m/Y" }}</td>
+                    <td class="px-3 py-4 text-sm text-slate-600">{{ absence.end_date|date:"d/m/Y" }}</td>
+                    <td class="px-3 py-4 text-sm font-semibold text-slate-900">{{ absence.duration_days }}</td>
+                    <td class="px-3 py-4">
+                        {% now "Y-m-d" as today %}
+                        {% if absence.start_date|date:"Y-m-d" > today %}
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
+                            <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>Futura
+                        </span>
+                        {% elif absence.end_date|date:"Y-m-d" < today %}
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                            <span class="h-1.5 w-1.5 rounded-full bg-slate-400"></span>Pasada
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+                            <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>En curso
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-3 py-4 text-sm text-slate-500 max-w-[200px] truncate" title="{{ absence.reason }}">
+                        {{ absence.reason|default:"-" }}
+                    </td>
+                    <td class="relative py-4 pl-3 pr-6 text-right">
+                        <div class="flex items-center justify-end gap-1">
+                            <a href="{% url 'team:absence_edit' absence.pk %}" 
+                               class="inline-flex items-center justify-center rounded-lg p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors"
+                               title="Editar">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                </svg>
+                            </a>
+                            <a href="{% url 'team:absence_delete' absence.pk %}" 
+                               class="inline-flex items-center justify-center rounded-lg p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                               title="Eliminar">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                </svg>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-12 px-6">
+        <svg class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+        </svg>
+        <h3 class="mt-4 text-base font-semibold text-slate-900">No se encontraron ausencias</h3>
+        <p class="mt-2 text-sm text-slate-500">No hay ausencias que coincidan con los filtros aplicados.</p>
+        <div class="mt-6">
+            <a href="{% url 'team:absence_create' %}" 
+               class="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 transition-colors">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Registrar Ausencia
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}
