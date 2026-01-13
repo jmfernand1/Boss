@@ -222,13 +222,13 @@
                             </thead>
                             <tbody>
                                 {% for vacation in vacation_records %}
-                                <tr {% if vacation.days_pending> 10 %}class="bg-warning bg-opacity-10"{% endif %}>
+                                <tr {% if vacation.has_many_pending_days %}class="bg-warning bg-opacity-10"{% endif %}>
                                     <td class="ps-3"><strong>{{ vacation.year }}</strong></td>
                                     <td>{{ vacation.days_entitled }}</td>
                                     <td>{{ vacation.days_taken }}</td>
                                     <td>
                                         <strong
-                                            class="{% if vacation.days_pending > 0 %}text-success{% else %}text-muted{% endif %}">
+                                            class="{% if vacation.days_pending %}text-success{% else %}text-muted{% endif %}">
                                             {{ vacation.days_pending }}
                                         </strong>
                                     </td>

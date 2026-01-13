@@ -52,16 +52,49 @@
                     </div>
                     
                     <!-- Información de registros relacionados -->
-                    {% if employee.absences.count > 0 or employee.vacations.count > 0 %}
-                    <div class="alert alert-info mt-3">
-                        <h6><i class="fas fa-info-circle"></i> Registros relacionados que serán eliminados:</h6>
+                    {% if constraints.blocking_reasons %}
+                    <div class="alert alert-danger mt-3">
+                        <h6><i class="fas fa-exclamation-triangle"></i> ¡No se puede eliminar!</h6>
+                        <p class="mb-2">Este empleado no puede ser eliminado porque:</p>
                         <ul class="mb-0">
-                            {% if employee.absences.count > 0 %}
-                                <li>{{ employee.absences.count }} ausencia{{ employee.absences.count|pluralize }}</li>
+                            {% for reason in constraints.blocking_reasons %}
+                                <li><strong>{{ reason }}</strong></li>
+                            {% endfor %}
+                        </ul>
+                        <p class="mt-2 mb-2">
+                            <small>
+                                <i class="fas fa-lightbulb"></i> 
+                                <strong>Solución:</strong> 
+                                {% if constraints.owned_initiatives %}
+                                    Reasigne las iniciativas a otro empleado.
+                                {% endif %}
+                                {% if constraints.created_updates %}
+                                    {% if constraints.owned_initiatives %}Y {% endif %}Las actualizaciones de iniciativas no se pueden reasignar, considere desactivar el empleado en lugar de eliminarlo.
+                                {% endif %}
+                            </small>
+                        </p>
+                        <div class="mt-2">
+                            {% if constraints.owned_initiatives %}
+                            <a href="{% url 'initiatives:initiative_list' %}?owner={{ employee.id }}" class="btn btn-sm btn-outline-primary me-2" target="_blank">
+                                <i class="fas fa-external-link-alt"></i> Ver iniciativas
+                            </a>
                             {% endif %}
-                            {% if employee.vacations.count > 0 %}
-                                <li>{{ employee.vacations.count }} registro{{ employee.vacations.count|pluralize }} de vacaciones</li>
+                            {% if constraints.created_updates %}
+                            <a href="{% url 'team:employee_edit' employee.pk %}" class="btn btn-sm btn-outline-warning">
+                                <i class="fas fa-user-slash"></i> Desactivar empleado
+                            </a>
                             {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if constraints.warnings %}
+                    <div class="alert alert-info mt-3">
+                        <h6><i class="fas fa-info-circle"></i> Registros relacionados:</h6>
+                        <ul class="mb-0">
+                            {% for warning in constraints.warnings %}
+                                <li>{{ warning }}</li>
+                            {% endfor %}
                         </ul>
                     </div>
                     {% endif %}
@@ -72,9 +105,15 @@
                             <a href="{% url 'team:employee_list' %}" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Cancelar
                             </a>
-                            <button type="submit" class="btn btn-danger">
-                                <i class="fas fa-trash"></i> Sí, Eliminar
-                            </button>
+                            {% if not constraints.can_delete %}
+                                <button type="button" class="btn btn-danger" disabled title="No se puede eliminar debido a restricciones">
+                                    <i class="fas fa-ban"></i> No se puede eliminar
+                                </button>
+                            {% else %}
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> Sí, Eliminar
+                                </button>
+                            {% endif %}
                         </div>
                     </form>
                 </div>

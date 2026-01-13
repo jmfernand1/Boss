@@ -94,6 +94,10 @@ def employee_detail(request, pk):
         year__in=[current_year-1, current_year, current_year+1]
     ).order_by('-year')
     
+    # Agregar información de alerta para vacaciones con muchos días pendientes
+    for vacation in vacation_records:
+        vacation.has_many_pending_days = vacation.days_pending > 10
+    
     context = {
         'employee': employee,
         'absences': absences,
@@ -296,20 +300,131 @@ def employee_edit(request, pk):
     })
 
 
+def _check_employee_deletion_constraints(employee):
+    """
+    Verifica todas las restricciones que pueden impedir la eliminación de un empleado.
+    Retorna un diccionario con información sobre las restricciones.
+    """
+    from initiatives.models import InitiativeUpdate
+    
+    constraints = {
+        'can_delete': True,
+        'blocking_reasons': [],
+        'warnings': [],
+        'owned_initiatives': [],
+        'assigned_stories': [],
+        'assigned_tasks': [],
+        'collaborated_initiatives': [],
+        'created_updates': [],
+        'absences_count': 0,
+        'vacations_count': 0,
+    }
+    
+    # Verificar iniciativas donde es propietario (PROTECT)
+    owned_initiatives = employee.owned_initiatives.all()
+    if owned_initiatives.exists():
+        constraints['can_delete'] = False
+        constraints['blocking_reasons'].append(
+            f'Es propietario de {owned_initiatives.count()} iniciativa(s)'
+        )
+        constraints['owned_initiatives'] = list(owned_initiatives)
+    
+    # Verificar actualizaciones de iniciativas creadas por el usuario (PROTECT)
+    # Como Employee tiene OneToOne con User, verificamos las actualizaciones del usuario
+    created_updates = InitiativeUpdate.objects.filter(created_by=employee.user)
+    if created_updates.exists():
+        constraints['can_delete'] = False
+        constraints['blocking_reasons'].append(
+            f'Ha creado {created_updates.count()} actualización(es) de iniciativas'
+        )
+        constraints['created_updates'] = list(created_updates)
+    
+    # Verificar historias de usuario asignadas (SET_NULL - no bloquea)
+    assigned_stories = employee.assigned_stories.all()
+    if assigned_stories.exists():
+        constraints['warnings'].append(
+            f'Tiene {assigned_stories.count()} historia(s) de usuario asignada(s) (se desasignarán)'
+        )
+        constraints['assigned_stories'] = list(assigned_stories)
+    
+    # Verificar tareas asignadas (SET_NULL - no bloquea)
+    assigned_tasks = employee.assigned_tasks.all()
+    if assigned_tasks.exists():
+        constraints['warnings'].append(
+            f'Tiene {assigned_tasks.count()} tarea(s) asignada(s) (se desasignarán)'
+        )
+        constraints['assigned_tasks'] = list(assigned_tasks)
+    
+    # Verificar iniciativas donde colabora (ManyToMany - no bloquea)
+    collaborated_initiatives = employee.collaborated_initiatives.all()
+    if collaborated_initiatives.exists():
+        constraints['warnings'].append(
+            f'Colabora en {collaborated_initiatives.count()} iniciativa(s) (se removerá como colaborador)'
+        )
+        constraints['collaborated_initiatives'] = list(collaborated_initiatives)
+    
+    # Contar ausencias y vacaciones (CASCADE - se eliminarán)
+    absences_count = employee.absences.count()
+    vacations_count = employee.vacations.count()
+    
+    if absences_count > 0:
+        constraints['warnings'].append(f'Tiene {absences_count} ausencia(s) (se eliminarán)')
+        constraints['absences_count'] = absences_count
+    
+    if vacations_count > 0:
+        constraints['warnings'].append(f'Tiene {vacations_count} registro(s) de vacaciones (se eliminarán)')
+        constraints['vacations_count'] = vacations_count
+    
+    return constraints
+
+
 @login_required
 def employee_delete(request, pk):
     """Eliminar empleado"""
     employee = get_object_or_404(Employee, pk=pk)
     
-    if request.method == 'POST':
-        employee_name = employee.full_name
-        employee.delete()
-        messages.success(request, f'Empleado {employee_name} eliminado exitosamente.')
-        return redirect('team:employee_list')
+    # Verificar todas las restricciones
+    constraints = _check_employee_deletion_constraints(employee)
     
-    return render(request, 'team/employee_confirm_delete.html', {
-        'employee': employee
-    })
+    if request.method == 'POST':
+        if not constraints['can_delete']:
+            blocking_reasons = '; '.join(constraints['blocking_reasons'])
+            messages.error(
+                request, 
+                f'No se puede eliminar a {employee.full_name} porque: {blocking_reasons}. '
+                'Debe resolver estas restricciones antes de eliminar.'
+            )
+            return redirect('team:employee_detail', pk=employee.pk)
+        
+        try:
+            employee_name = employee.full_name
+            user_to_delete = employee.user  # Guardar referencia al usuario
+            
+            # Eliminar el empleado (esto también eliminará el usuario por CASCADE)
+            employee.delete()
+            
+            messages.success(request, f'Empleado {employee_name} eliminado exitosamente.')
+            return redirect('team:employee_list')
+            
+        except Exception as e:
+            messages.error(
+                request, 
+                f'Error al eliminar el empleado: {str(e)}. '
+                'Verifique que no tenga registros relacionados que impidan la eliminación.'
+            )
+            return redirect('team:employee_detail', pk=employee.pk)
+    
+    context = {
+        'employee': employee,
+        'constraints': constraints,
+        'owned_initiatives': constraints['owned_initiatives'],
+        'assigned_stories': constraints['assigned_stories'],
+        'assigned_tasks': constraints['assigned_tasks'],
+        'collaborated_initiatives': constraints['collaborated_initiatives'],
+        'blocking_initiatives': not constraints['can_delete'],
+    }
+    
+    return render(request, 'team/employee_confirm_delete.html', context)
 
 
 @login_required

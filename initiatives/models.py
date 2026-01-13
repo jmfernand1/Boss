@@ -93,10 +93,10 @@ class Initiative(models.Model):
     
     title = models.CharField(max_length=200, verbose_name='Título')
     description = models.TextField(verbose_name='Descripción')
-    initiative_type = models.ForeignKey(InitiativeType, on_delete=models.PROTECT, verbose_name='Tipo')
-    owner = models.ForeignKey(Employee, on_delete=models.PROTECT, related_name='owned_initiatives', verbose_name='Responsable')
+    initiative_type = models.ForeignKey(InitiativeType, on_delete=models.DO_NOTHING, verbose_name='Tipo')
+    owner = models.ForeignKey(Employee, on_delete=models.DO_NOTHING, related_name='owned_initiatives', verbose_name='Responsable')
     collaborators = models.ManyToManyField(Employee, blank=True, related_name='collaborated_initiatives', verbose_name='Colaboradores')
-    quarter = models.ForeignKey(Quarter, on_delete=models.PROTECT, verbose_name='Periodo (Q)')
+    quarter = models.ForeignKey(Quarter, on_delete=models.DO_NOTHING, verbose_name='Periodo (Q)')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='BACKLOG', verbose_name='Estado')
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='MEDIUM', verbose_name='Prioridad')
     start_date = models.DateField(null=True, blank=True, verbose_name='Fecha de Inicio')
