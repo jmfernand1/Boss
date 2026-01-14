@@ -3,80 +3,91 @@
 {% block title %}Eliminar Tipo de Ausencia - BOSS{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1><i class="fas fa-tag text-danger"></i> Eliminar Tipo de Ausencia</h1>
-        </div>
-        <div class="col-md-4 text-end">
-            <a href="{% url 'team:absence_type_list' %}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Volver a Tipos
-            </a>
-        </div>
+<div class="max-w-lg mx-auto">
+    <div class="mb-6">
+        <a href="{% url 'team:absence_type_list' %}" 
+           class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+            Volver a Tipos
+        </a>
     </div>
-
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card border-danger">
-                <div class="card-header bg-danger text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
-                    </h5>
+    
+    <div class="bg-white rounded-xl shadow-sm ring-1 ring-red-200 overflow-hidden">
+        <div class="bg-red-50 border-b border-red-100 px-6 py-4">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
                 </div>
-                <div class="card-body">
-                    <div class="alert alert-warning">
-                        <strong>¡Atención!</strong> Esta acción no se puede deshacer.
-                    </div>
-                    
-                    <p>¿Está seguro que desea eliminar el siguiente tipo de ausencia?</p>
-                    
-                    <div class="card bg-light">
-                        <div class="card-body">
-                            <div class="row mb-2">
-                                <div class="col-sm-4"><strong>Nombre:</strong></div>
-                                <div class="col-sm-8">{{ absence_type.name }}</div>
-                            </div>
-                            <div class="row mb-2">
-                                <div class="col-sm-4"><strong>Código:</strong></div>
-                                <div class="col-sm-8"><code>{{ absence_type.code }}</code></div>
-                            </div>
-                            <div class="row mb-2">
-                                <div class="col-sm-4"><strong>Color:</strong></div>
-                                <div class="col-sm-8">
-                                    <span class="badge" style="background-color: {{ absence_type.color }}">
-                                        {{ absence_type.color }}
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="row mb-2">
-                                <div class="col-sm-4"><strong>Configuración:</strong></div>
-                                <div class="col-sm-8">
-                                    {% if absence_type.requires_approval %}
-                                        <span class="badge bg-warning">Requiere Aprobación</span>
-                                    {% endif %}
-                                    {% if absence_type.paid %}
-                                        <span class="badge bg-success">Remunerado</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">No Remunerado</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <form method="post" class="mt-4">
-                        {% csrf_token %}
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'team:absence_type_list' %}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Cancelar
-                            </a>
-                            <button type="submit" class="btn btn-danger">
-                                <i class="fas fa-trash"></i> Sí, Eliminar
-                            </button>
-                        </div>
-                    </form>
+                <div>
+                    <h1 class="text-lg font-semibold text-red-800">Eliminar Tipo de Ausencia</h1>
+                    <p class="text-sm text-red-600">Esta acción no se puede deshacer</p>
                 </div>
             </div>
+        </div>
+        
+        <div class="p-6">
+            <p class="text-sm text-slate-600 mb-4">
+                ¿Está seguro que desea eliminar el siguiente tipo de ausencia?
+            </p>
+            
+            <!-- Type Details -->
+            <div class="bg-slate-50 rounded-lg p-4 mb-6 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-slate-500">Nombre:</span>
+                    <span class="font-semibold text-slate-900">{{ absence_type.name }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-slate-500">Código:</span>
+                    <code class="rounded bg-white px-2 py-1 text-xs font-mono text-slate-600">{{ absence_type.code }}</code>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-slate-500">Color:</span>
+                    <span class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium text-white"
+                          style="background-color: {{ absence_type.color }};">
+                        {{ absence_type.color }}
+                    </span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-slate-500">Configuración:</span>
+                    <div class="flex items-center gap-2">
+                        {% if absence_type.requires_approval %}
+                        <span class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                            Requiere Aprobación
+                        </span>
+                        {% endif %}
+                        {% if absence_type.paid %}
+                        <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                            Remunerado
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                            No Remunerado
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="flex items-center justify-end gap-3">
+                    <a href="{% url 'team:absence_type_list' %}" 
+                       class="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors">
+                        Cancelar
+                    </a>
+                    <button type="submit" 
+                            class="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-150">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                        </svg>
+                        Sí, Eliminar
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

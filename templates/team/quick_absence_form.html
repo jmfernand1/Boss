@@ -3,133 +3,158 @@
 {% block title %}Registro Rápido de Ausencia - BOSS{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1><i class="fas fa-plus-circle"></i> Registro Rápido de Ausencia</h1>
-        </div>
-        <div class="col-md-4 text-end">
-            <a href="{% url 'team:dashboard' %}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Volver al Dashboard
-            </a>
-        </div>
+<div class="max-w-2xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <a href="{% url 'team:dashboard' %}" 
+           class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors mb-4">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+            Volver al Dashboard
+        </a>
+        <h1 class="text-2xl font-bold text-slate-900">Registro Rápido de Ausencia</h1>
+        <p class="mt-2 text-sm text-slate-500">Formulario simplificado para registrar ausencias.</p>
     </div>
 
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-calendar-plus"></i> Nueva Ausencia
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if form.errors %}
-                        <div class="alert alert-danger">
-                            <h6><i class="fas fa-exclamation-triangle"></i> Errores en el formulario:</h6>
-                            {% for field, errors in form.errors.items %}
-                                {% if field == '__all__' %}
-                                    {% for error in errors %}
-                                        <p class="mb-1">{{ error }}</p>
-                                    {% endfor %}
-                                {% else %}
-                                    <p class="mb-1"><strong>{{ field }}:</strong> {{ errors|join:", " }}</p>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                    <form method="post" novalidate>
-                        {% csrf_token %}
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.employee.id_for_label }}" class="form-label">
-                                        {{ form.employee.label }} <span class="text-danger">*</span>
-                                    </label>
-                                    {{ form.employee }}
-                                    {% if form.employee.errors %}
-                                        <div class="invalid-feedback d-block">{{ form.employee.errors|join:", " }}</div>
-                                    {% endif %}
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ form.absence_type.id_for_label }}" class="form-label">
-                                        {{ form.absence_type.label }} <span class="text-danger">*</span>
-                                    </label>
-                                    {{ form.absence_type }}
-                                    {% if form.absence_type.errors %}
-                                        <div class="invalid-feedback d-block">{{ form.absence_type.errors|join:", " }}</div>
-                                    {% endif %}
-                                </div>
-                                
-                                <!-- Información de vacaciones disponibles -->
-                                <div class="vacation-info alert alert-info" style="display: none;">
-                                    <h6><i class="fas fa-umbrella-beach"></i> Información de Vacaciones</h6>
-                                    <div class="vacation-details">
-                                        <!-- Se llenará dinámicamente -->
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="{{ form.start_date.id_for_label }}" class="form-label">
-                                        {{ form.start_date.label }} <span class="text-danger">*</span>
-                                    </label>
-                                    {{ form.start_date }}
-                                    {% if form.start_date.errors %}
-                                        <div class="invalid-feedback d-block">{{ form.start_date.errors|join:", " }}</div>
-                                    {% endif %}
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ form.end_date.id_for_label }}" class="form-label">
-                                        {{ form.end_date.label }} <span class="text-danger">*</span>
-                                    </label>
-                                    {{ form.end_date }}
-                                    <div class="duration-info mt-1"></div>
-                                    {% if form.end_date.errors %}
-                                        <div class="invalid-feedback d-block">{{ form.end_date.errors|join:", " }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.reason.id_for_label }}" class="form-label">
-                                {{ form.reason.label }}
-                            </label>
-                            {{ form.reason }}
-                            <div class="form-text">Motivo o justificación (opcional)</div>
-                            {% if form.reason.errors %}
-                                <div class="invalid-feedback d-block">{{ form.reason.errors|join:", " }}</div>
-                            {% endif %}
-                        </div>
-
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'team:dashboard' %}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Cancelar
-                            </a>
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-save"></i> Registrar Ausencia
-                            </button>
-                        </div>
-                    </form>
+    <!-- Form Card -->
+    <div class="bg-white rounded-xl shadow-sm ring-1 ring-slate-900/5 overflow-hidden">
+        <div class="border-b border-slate-100 bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-4">
+            <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+                Nueva Ausencia
+            </h2>
+        </div>
+        
+        {% if form.errors %}
+        <div class="bg-red-50 border-b border-red-100 px-6 py-4">
+            <div class="flex items-start gap-3">
+                <svg class="h-5 w-5 text-red-500 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                </svg>
+                <div>
+                    <h3 class="text-sm font-semibold text-red-800">Errores en el formulario:</h3>
+                    <ul class="mt-2 text-sm text-red-700 space-y-1">
+                        {% for field, errors in form.errors.items %}
+                        {% if field == '__all__' %}
+                        {% for error in errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                        {% else %}
+                        <li><span class="font-medium">{{ field }}:</span> {{ errors|join:", " }}</li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
                 </div>
             </div>
+        </div>
+        {% endif %}
+
+        <form method="post" class="divide-y divide-slate-100" novalidate>
+            {% csrf_token %}
             
-            <!-- Información de ayuda -->
-            <div class="card mt-3">
-                <div class="card-body">
-                    <h6><i class="fas fa-info-circle text-info"></i> Información</h6>
-                    <p class="mb-0">
-                        Use este formulario para registrar rápidamente ausencias del personal. 
-                        Para configuraciones más avanzadas, use el 
-                        <a href="{% url 'team:absence_create' %}">formulario completo</a>.
-                    </p>
+            <div class="p-6 space-y-6">
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                        <label for="{{ form.employee.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-2">
+                            {{ form.employee.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.employee }}
+                        {% if form.employee.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.employee.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.absence_type.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-2">
+                            {{ form.absence_type.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.absence_type }}
+                        {% if form.absence_type.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.absence_type.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.start_date.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-2">
+                            {{ form.start_date.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.start_date }}
+                        {% if form.start_date.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.start_date.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.end_date.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-2">
+                            {{ form.end_date.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.end_date }}
+                        <p id="duration-info" class="mt-1 text-xs text-slate-500"></p>
+                        {% if form.end_date.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.end_date.errors|join:", " }}</p>
+                        {% endif %}
+                    </div>
                 </div>
+                
+                <!-- Vacation info panel -->
+                <div id="vacation-info" class="hidden">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-start gap-3">
+                            <svg class="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                            </svg>
+                            <div class="vacation-details">
+                                <h4 class="text-sm font-semibold text-blue-800">Información de Vacaciones</h4>
+                                <p class="text-sm text-blue-700 mt-1">Los días disponibles se validarán al guardar.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="{{ form.reason.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-2">
+                        {{ form.reason.label }}
+                    </label>
+                    {{ form.reason }}
+                    <p class="mt-1 text-xs text-slate-500">Motivo o justificación (opcional)</p>
+                    {% if form.reason.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.reason.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Form Footer -->
+            <div class="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3">
+                <a href="{% url 'team:dashboard' %}" 
+                   class="inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-white transition-colors">
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="inline-flex items-center justify-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-150">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                    Registrar Ausencia
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Info Card -->
+    <div class="mt-6 bg-blue-50 rounded-xl p-4 ring-1 ring-blue-200">
+        <div class="flex items-start gap-3">
+            <svg class="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
+            </svg>
+            <div>
+                <h4 class="text-sm font-semibold text-blue-800">Información</h4>
+                <p class="mt-1 text-sm text-blue-700">
+                    Use este formulario para registrar rápidamente ausencias. Para configuraciones más avanzadas, use el 
+                    <a href="{% url 'team:absence_create' %}" class="font-semibold underline hover:no-underline">formulario completo</a>.
+                </p>
             </div>
         </div>
     </div>
@@ -138,71 +163,49 @@
 
 {% block extra_js %}
 <script>
-$(document).ready(function() {
-    // Calcular duración cuando cambien las fechas
+document.addEventListener('DOMContentLoaded', function() {
+    const startDateInput = document.querySelector('[name="start_date"]');
+    const endDateInput = document.querySelector('[name="end_date"]');
+    const absenceTypeSelect = document.querySelector('[name="absence_type"]');
+    const durationInfo = document.getElementById('duration-info');
+    const vacationInfo = document.getElementById('vacation-info');
+    
     function calculateDuration() {
-        const startDate = $('#{{ form.start_date.id_for_label }}').val();
-        const endDate = $('#{{ form.end_date.id_for_label }}').val();
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
         
         if (startDate && endDate) {
             const start = new Date(startDate);
             const end = new Date(endDate);
-            const diffTime = Math.abs(end - start);
+            const diffTime = end - start;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
             
-            // Mostrar duración
-            let durationText = '';
             if (end >= start) {
-                durationText = `<small class="text-muted">Duración: ${diffDays} día${diffDays !== 1 ? 's' : ''}</small>`;
+                durationInfo.textContent = `Duración: ${diffDays} día${diffDays !== 1 ? 's' : ''}`;
+                durationInfo.className = 'mt-1 text-xs text-emerald-600 font-medium';
             } else {
-                durationText = `<small class="text-danger">La fecha de fin debe ser posterior a la de inicio</small>`;
-            }
-            
-            $('.duration-info').html(durationText);
-            
-            // Verificar información de vacaciones
-            checkVacationInfo();
-        }
-    }
-    
-    // Verificar y mostrar información de vacaciones
-    function checkVacationInfo() {
-        const employeeId = $('#{{ form.employee.id_for_label }}').val();
-        const absenceTypeId = $('#{{ form.absence_type.id_for_label }}').val();
-        const startDate = $('#{{ form.start_date.id_for_label }}').val();
-        
-        // Verificar si es tipo vacaciones
-        if (employeeId && absenceTypeId && startDate) {
-            const selectedType = $('#{{ form.absence_type.id_for_label }} option:selected').text();
-            
-            if (selectedType.toLowerCase().includes('vacacion')) {
-                $('.vacation-info').show();
-                loadVacationInfo(employeeId, startDate);
-            } else {
-                $('.vacation-info').hide();
+                durationInfo.textContent = 'La fecha de fin debe ser posterior a la de inicio';
+                durationInfo.className = 'mt-1 text-xs text-red-600';
             }
         } else {
-            $('.vacation-info').hide();
+            durationInfo.textContent = '';
         }
     }
     
-    // Cargar información de vacaciones
-    function loadVacationInfo(employeeId, date) {
-        const year = new Date(date).getFullYear();
-        const employeeName = $('#{{ form.employee.id_for_label }} option:selected').text();
-        
-        $('.vacation-details').html(`
-            <p class="mb-1"><strong>Empleado:</strong> ${employeeName}</p>
-            <p class="mb-1"><strong>Año:</strong> ${year}</p>
-            <p class="mb-0"><small class="text-muted">Los días disponibles se validarán al guardar</small></p>
-        `);
+    function checkVacationInfo() {
+        const selectedOption = absenceTypeSelect.options[absenceTypeSelect.selectedIndex];
+        if (selectedOption && selectedOption.text.toLowerCase().includes('vacacion')) {
+            vacationInfo.classList.remove('hidden');
+        } else {
+            vacationInfo.classList.add('hidden');
+        }
     }
     
-    // Eventos
-    $('#{{ form.start_date.id_for_label }}, #{{ form.end_date.id_for_label }}').on('change', calculateDuration);
-    $('#{{ form.employee.id_for_label }}, #{{ form.absence_type.id_for_label }}, #{{ form.start_date.id_for_label }}').on('change', checkVacationInfo);
+    if (startDateInput) startDateInput.addEventListener('change', calculateDuration);
+    if (endDateInput) endDateInput.addEventListener('change', calculateDuration);
+    if (absenceTypeSelect) absenceTypeSelect.addEventListener('change', checkVacationInfo);
     
-    // Calcular duración inicial
+    // Initial calculation
     calculateDuration();
     checkVacationInfo();
 });

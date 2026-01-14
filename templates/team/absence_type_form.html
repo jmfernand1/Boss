@@ -3,129 +3,162 @@
 {% block back_text %}Volver a Tipos{% endblock %}
 
 {% block form_content %}
-<div class="row">
-    <div class="col-md-6">
-        <h5 class="border-bottom pb-2 mb-3">
-            <i class="fas fa-tag"></i> Información Básica
-        </h5>
-        
-        <div class="mb-3">
-            <label for="{{ form.name.id_for_label }}" class="form-label">
-                {{ form.name.label }} <span class="text-danger">*</span>
-            </label>
-            {{ form.name }}
-            <div class="form-text">Nombre descriptivo del tipo de ausencia</div>
-            {% if form.name.errors %}
-                <div class="invalid-feedback d-block">{{ form.name.errors|join:", " }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="mb-3">
-            <label for="{{ form.code.id_for_label }}" class="form-label">
-                {{ form.code.label }} <span class="text-danger">*</span>
-            </label>
-            {{ form.code }}
-            <div class="form-text">Código único de 3-10 caracteres (ej: VAC, ENF, PER)</div>
-            {% if form.code.errors %}
-                <div class="invalid-feedback d-block">{{ form.code.errors|join:", " }}</div>
-            {% endif %}
-        </div>
-    </div>
-    
-    <div class="col-md-6">
-        <h5 class="border-bottom pb-2 mb-3">
-            <i class="fas fa-cog"></i> Configuración
-        </h5>
-        
-        <div class="mb-3 form-check">
-            {{ form.requires_approval }}
-            <label class="form-check-label" for="{{ form.requires_approval.id_for_label }}">
-                {{ form.requires_approval.label }}
-            </label>
-            <div class="form-text">¿Las ausencias de este tipo requieren aprobación previa?</div>
-            {% if form.requires_approval.errors %}
-                <div class="invalid-feedback d-block">{{ form.requires_approval.errors|join:", " }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="mb-3 form-check">
-            {{ form.paid }}
-            <label class="form-check-label" for="{{ form.paid.id_for_label }}">
-                {{ form.paid.label }}
-            </label>
-            <div class="form-text">¿Las ausencias de este tipo son remuneradas?</div>
-            {% if form.paid.errors %}
-                <div class="invalid-feedback d-block">{{ form.paid.errors|join:", " }}</div>
-            {% endif %}
-        </div>
-        
-        <div class="mb-3">
-            <label for="{{ form.color.id_for_label }}" class="form-label">
-                {{ form.color.label }} <span class="text-danger">*</span>
-            </label>
-            <div class="input-group">
-                {{ form.color }}
-                <span class="input-group-text color-preview" style="background-color: {{ form.color.value|default:'#3498db' }}; width: 50px;"></span>
+<div class="space-y-8">
+    <!-- Información Básica -->
+    <div>
+        <h3 class="text-base font-semibold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-200">
+            <svg class="h-5 w-5 text-primary-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
+            </svg>
+            Información Básica
+        </h3>
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+                <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-2">
+                    {{ form.name.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.name }}
+                <p class="mt-1 text-xs text-slate-500">Nombre descriptivo del tipo de ausencia</p>
+                {% if form.name.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.name.errors|join:", " }}</p>
+                {% endif %}
             </div>
-            <div class="form-text">Color para identificar visualmente este tipo</div>
-            {% if form.color.errors %}
-                <div class="invalid-feedback d-block">{{ form.color.errors|join:", " }}</div>
-            {% endif %}
+            
+            <div>
+                <label for="{{ form.code.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-2">
+                    {{ form.code.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.code }}
+                <p class="mt-1 text-xs text-slate-500">Código único (ej: VAC, ENF, PER)</p>
+                {% if form.code.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.code.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuración -->
+    <div>
+        <h3 class="text-base font-semibold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-200">
+            <svg class="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Configuración
+        </h3>
+        <div class="mt-4 space-y-4">
+            <div class="flex items-start gap-3">
+                <div class="flex h-6 items-center">
+                    {{ form.requires_approval }}
+                </div>
+                <div>
+                    <label for="{{ form.requires_approval.id_for_label }}" class="text-sm font-medium text-slate-900">
+                        {{ form.requires_approval.label }}
+                    </label>
+                    <p class="text-xs text-slate-500 mt-1">¿Las ausencias de este tipo requieren aprobación previa?</p>
+                </div>
+            </div>
+            
+            <div class="flex items-start gap-3">
+                <div class="flex h-6 items-center">
+                    {{ form.paid }}
+                </div>
+                <div>
+                    <label for="{{ form.paid.id_for_label }}" class="text-sm font-medium text-slate-900">
+                        {{ form.paid.label }}
+                    </label>
+                    <p class="text-xs text-slate-500 mt-1">¿Las ausencias de este tipo son remuneradas?</p>
+                </div>
+            </div>
+            
+            <div>
+                <label for="{{ form.color.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-2">
+                    {{ form.color.label }} <span class="text-red-500">*</span>
+                </label>
+                <div class="flex items-center gap-3">
+                    {{ form.color }}
+                    <div id="color-preview" class="h-10 w-20 rounded-lg border border-slate-300" style="background-color: {{ form.color.value|default:'#3498db' }};"></div>
+                </div>
+                <p class="mt-1 text-xs text-slate-500">Color para identificar visualmente este tipo</p>
+                {% if form.color.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ form.color.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Vista Previa -->
+    <div>
+        <h3 class="text-base font-semibold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-200">
+            <svg class="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Vista Previa
+        </h3>
+        <div class="mt-4 bg-slate-50 rounded-lg p-4">
+            <p class="text-sm text-slate-600 mb-3">Así se verá en las listas:</p>
+            <div class="flex items-center gap-3">
+                <span id="preview-badge" class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium text-white" style="background-color: {{ form.color.value|default:'#3498db' }};">
+                    <span id="preview-name">{{ form.name.value|default:'Nombre del Tipo' }}</span>
+                </span>
+                <span class="text-sm text-slate-500">
+                    Código: <code id="preview-code" class="rounded bg-white px-1.5 py-0.5 text-xs font-mono text-slate-600">{{ form.code.value|default:'CODIGO' }}</code>
+                </span>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Vista previa -->
-<div class="row mt-4">
-    <div class="col-12">
-        <h5 class="border-bottom pb-2 mb-3">
-            <i class="fas fa-eye"></i> Vista Previa
-        </h5>
-        
-        <div class="alert alert-light">
-            <p><strong>Así se verá en las listas:</strong></p>
-            <span class="badge preview-badge" style="background-color: {{ form.color.value|default:'#3498db' }}">
-                <span class="preview-name">{{ form.name.value|default:'Nombre del Tipo' }}</span>
-            </span>
-            <small class="text-muted ms-2">
-                Código: <code class="preview-code">{{ form.code.value|default:'CODIGO' }}</code>
-            </small>
+{% if form.non_field_errors %}
+<div class="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
+    <div class="flex items-start gap-3">
+        <svg class="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+        </svg>
+        <div>
+            {% for error in form.non_field_errors %}
+            <p class="text-sm text-red-700">{{ error }}</p>
+            {% endfor %}
         </div>
     </div>
 </div>
-
-{% if form.errors %}
-    {% for error in form.non_field_errors %}
-        <div class="alert alert-danger">
-            {{ error }}
-        </div>
-    {% endfor %}
 {% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-$(document).ready(function() {
-    // Actualizar vista previa en tiempo real
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.querySelector('[name="name"]');
+    const codeInput = document.querySelector('[name="code"]');
+    const colorInput = document.querySelector('[name="color"]');
+    const colorPreview = document.getElementById('color-preview');
+    const previewBadge = document.getElementById('preview-badge');
+    const previewName = document.getElementById('preview-name');
+    const previewCode = document.getElementById('preview-code');
+    
     function updatePreview() {
-        const name = $('#{{ form.name.id_for_label }}').val() || 'Nombre del Tipo';
-        const code = $('#{{ form.code.id_for_label }}').val().toUpperCase() || 'CODIGO';
-        const color = $('#{{ form.color.id_for_label }}').val() || '#3498db';
+        const name = nameInput.value || 'Nombre del Tipo';
+        const code = codeInput.value.toUpperCase() || 'CODIGO';
+        const color = colorInput.value || '#3498db';
         
-        $('.preview-name').text(name);
-        $('.preview-code').text(code);
-        $('.preview-badge, .color-preview').css('background-color', color);
+        previewName.textContent = name;
+        previewCode.textContent = code;
+        previewBadge.style.backgroundColor = color;
+        colorPreview.style.backgroundColor = color;
     }
     
-    // Eventos para actualización en tiempo real
-    $('#{{ form.name.id_for_label }}, #{{ form.code.id_for_label }}, #{{ form.color.id_for_label }}').on('input change', updatePreview);
+    if (nameInput) nameInput.addEventListener('input', updatePreview);
+    if (codeInput) {
+        codeInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+            updatePreview();
+        });
+    }
+    if (colorInput) colorInput.addEventListener('input', updatePreview);
     
-    // Convertir código a mayúsculas automáticamente
-    $('#{{ form.code.id_for_label }}').on('input', function() {
-        this.value = this.value.toUpperCase();
-    });
-    
-    // Actualización inicial
+    // Initial update
     updatePreview();
 });
 </script>

@@ -41,9 +41,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Heroicons -->
-    <script src="https://unpkg.com/@heroicons/vue@2.0.18/dist/cjs/index.js" defer></script>
-    
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
     
@@ -132,7 +129,8 @@
     {% else %}
     <!-- Layout para usuarios no autenticados -->
     <main class="min-h-screen">
-        {% block content %}{% endblock %}
+        {% block unauthenticated_content %}
+        {% endblock %}
     </main>
     {% endif %}
     

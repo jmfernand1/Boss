@@ -3,242 +3,163 @@
 {% block title %}Calendario de Cumpleaños - BOSS{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1><i class="fas fa-birthday-cake"></i> Calendario de Cumpleaños</h1>
-            <p class="lead">{{ month_name }} {{ selected_year }}</p>
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="sm:flex sm:items-center sm:justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Calendario de Cumpleaños</h1>
+            <p class="mt-2 text-sm text-slate-500">{{ month_name }} {{ selected_year }}</p>
         </div>
-        <div class="col-md-4 text-end">
-            <a href="{% url 'team:birthday_calendar' %}" class="btn btn-outline-primary">
-                <i class="fas fa-calendar-day"></i> Mes Actual
+        <div class="mt-4 sm:ml-4 sm:mt-0">
+            <a href="{% url 'team:birthday_calendar' %}" 
+               class="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors">
+                <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+                Mes Actual
             </a>
         </div>
     </div>
+</div>
 
-    <!-- Selector de Mes y Año -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-5">
-                    <label class="form-label">Mes</label>
-                    <select name="month" class="form-select">
-                        {% for month_num, month_name_option in months %}
-                            <option value="{{ month_num }}" {% if month_num == selected_month %}selected{% endif %}>
-                                {{ month_name_option }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-5">
-                    <label class="form-label">Año</label>
-                    <select name="year" class="form-select">
-                        {% for year in years %}
-                            <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>
-                                {{ year }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-search"></i> Ver
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Navegación Rápida -->
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="btn-group w-100" role="group">
-                <a href="?month={{ prev_month }}&year={{ prev_year }}" class="btn btn-outline-secondary">
-                    <i class="fas fa-chevron-left"></i> {{ prev_month_name }} {{ prev_year }}
-                </a>
-                
-                <button class="btn btn-primary" disabled>
-                    {{ month_name }} {{ selected_year }}
-                </button>
-                
-                <a href="?month={{ next_month }}&year={{ next_year }}" class="btn btn-outline-secondary">
-                    {{ next_month_name }} {{ next_year }} <i class="fas fa-chevron-right"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Lista de Cumpleaños del Mes -->
-    <div class="card">
-        <div class="card-header bg-info text-white">
-            <h5 class="mb-0">
-                <i class="fas fa-gift"></i> Cumpleaños en {{ month_name }}
-                {% if birthdays %}
-                    <span class="badge bg-light text-dark float-end">{{ birthdays|length }}</span>
-                {% endif %}
-            </h5>
-        </div>
-        <div class="card-body">
-            {% if birthdays %}
-                <div class="row">
-                    {% for birthday in birthdays %}
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100 {% if birthday.date|date:"d" == "now"|date:"d" and birthday.date|date:"m" == "now"|date:"m" %}border-warning border-2{% endif %}">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center">
-                                    <div class="me-3">
-                                        <div class="text-center">
-                                            <h2 class="mb-0 text-primary">{{ birthday.date|date:"d" }}</h2>
-                                            <small class="text-muted">{{ birthday.date|date:"l"|slice:":3" }}</small>
-                                        </div>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h5 class="mb-1">
-                                            <a href="{% url 'team:employee_detail' birthday.employee.pk %}">
-                                                {{ birthday.employee.full_name }}
-                                            </a>
-                                        </h5>
-                                        <p class="mb-0 text-muted">{{ birthday.employee.position }}</p>
-                                        <p class="mb-0">
-                                            <small>{{ birthday.employee.department }}</small>
-                                        </p>
-                                    </div>
-                                    <div class="text-center">
-                                        <div class="display-6 text-warning">
-                                            🎂
-                                        </div>
-                                        <small class="text-muted">{{ birthday.age }} años</small>
-                                    </div>
-                                </div>
-                                {% if birthday.date|date:"d" == "now"|date:"d" and birthday.date|date:"m" == "now"|date:"m" %}
-                                <div class="mt-2">
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="fas fa-star"></i> ¡Hoy es su cumpleaños!
-                                    </span>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">No hay cumpleaños registrados en {{ month_name }} {{ selected_year }}.</p>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Resumen Anual -->
-    <div class="card mt-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Vista Anual {{ selected_year }}</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                {% for month_num, month_name_item in months %}
-                <div class="col-md-3 col-sm-6 mb-3">
-                    <a href="?month={{ month_num }}&year={{ selected_year }}" 
-                       class="text-decoration-none">
-                        <div class="card text-center {% if month_num == selected_month %}bg-primary text-white{% else %}bg-light{% endif %}">
-                            <div class="card-body py-2">
-                                <h6 class="mb-1">{{ month_name_item }}</h6>
-                                <p class="mb-0">
-                                    {% with month_birthdays=birthdays|length %}
-                                        {% if month_num == selected_month and month_birthdays > 0 %}
-                                            <span class="badge {% if month_num == selected_month %}bg-light text-dark{% else %}bg-primary{% endif %}">
-                                                {{ month_birthdays }}
-                                            </span>
-                                        {% else %}
-                                            <small class="{% if month_num == selected_month %}text-white-50{% else %}text-muted{% endif %}">
-                                                -
-                                            </small>
-                                        {% endif %}
-                                    {% endwith %}
-                                </p>
-                            </div>
-                        </div>
-                    </a>
-                </div>
+<!-- Month/Year Selector -->
+<div class="bg-white rounded-xl shadow-sm ring-1 ring-slate-900/5 p-6 mb-6">
+    <form method="get" class="grid grid-cols-1 gap-4 sm:grid-cols-7">
+        <div class="sm:col-span-3">
+            <label for="month" class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Mes</label>
+            <select name="month" id="month" class="block w-full rounded-lg border-0 py-2.5 pl-3 pr-10 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-primary-600 sm:text-sm">
+                {% for month_num, month_name_option in months %}
+                <option value="{{ month_num }}" {% if month_num == selected_month %}selected{% endif %}>{{ month_name_option }}</option>
                 {% endfor %}
+            </select>
+        </div>
+        <div class="sm:col-span-3">
+            <label for="year" class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Año</label>
+            <select name="year" id="year" class="block w-full rounded-lg border-0 py-2.5 pl-3 pr-10 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-primary-600 sm:text-sm">
+                {% for year in years %}
+                <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="flex items-end">
+            <button type="submit" 
+                    class="w-full inline-flex justify-center items-center gap-2 rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 transition-colors">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+                Ver
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Quick Navigation -->
+<div class="flex items-center justify-center gap-2 mb-6">
+    <a href="?month={{ prev_month }}&year={{ prev_year }}" 
+       class="inline-flex items-center gap-1 rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        </svg>
+        {{ prev_month_name }}
+    </a>
+    <span class="inline-flex items-center rounded-lg bg-primary-600 px-6 py-2 text-sm font-semibold text-white">
+        {{ month_name }} {{ selected_year }}
+    </span>
+    <a href="?month={{ next_month }}&year={{ next_year }}" 
+       class="inline-flex items-center gap-1 rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-700 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors">
+        {{ next_month_name }}
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+    </a>
+</div>
+
+<!-- Birthday List -->
+<div class="bg-white rounded-xl shadow-sm ring-1 ring-slate-900/5 overflow-hidden mb-6">
+    <div class="border-b border-slate-100 bg-gradient-to-r from-pink-500 to-rose-500 px-6 py-4">
+        <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+            🎂 Cumpleaños en {{ month_name }}
+            {% if birthdays %}
+            <span class="inline-flex items-center rounded-full bg-white/20 px-2.5 py-1 text-xs font-medium text-white">
+                {{ birthdays|length }}
+            </span>
+            {% endif %}
+        </h2>
+    </div>
+    
+    {% if birthdays %}
+    <div class="p-6">
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {% for birthday in birthdays %}
+            <div class="relative rounded-xl border {% if birthday.date|date:'d' == 'now'|date:'d' and birthday.date|date:'m' == 'now'|date:'m' %}border-amber-300 bg-amber-50 ring-2 ring-amber-200{% else %}border-slate-200 bg-white hover:bg-slate-50{% endif %} p-4 transition-colors">
+                <div class="flex items-center gap-4">
+                    <div class="text-center min-w-[60px]">
+                        <p class="text-3xl font-bold text-primary-600">{{ birthday.date|date:"d" }}</p>
+                        <p class="text-xs text-slate-500">{{ birthday.date|date:"l"|slice:":3" }}</p>
+                    </div>
+                    <div class="flex-1">
+                        <a href="{% url 'team:employee_detail' birthday.employee.pk %}" 
+                           class="text-base font-semibold text-slate-900 hover:text-primary-600 transition-colors">
+                            {{ birthday.employee.full_name }}
+                        </a>
+                        <p class="text-sm text-slate-500">{{ birthday.employee.position }}</p>
+                        <p class="text-xs text-slate-400">{{ birthday.employee.department }}</p>
+                    </div>
+                    <div class="text-center">
+                        <span class="text-4xl">🎂</span>
+                        <p class="text-xs text-slate-500 mt-1">{{ birthday.age }} años</p>
+                    </div>
+                </div>
+                {% if birthday.date|date:"d" == "now"|date:"d" and birthday.date|date:"m" == "now"|date:"m" %}
+                <div class="mt-3">
+                    <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+                        ⭐ ¡Hoy es su cumpleaños!
+                    </span>
+                </div>
+                {% endif %}
             </div>
+            {% endfor %}
         </div>
     </div>
-
-    <!-- Próximos Cumpleaños (Todos los meses) -->
-    <div class="card mt-4">
-        <div class="card-header bg-success text-white">
-            <h5 class="mb-0"><i class="fas fa-calendar-check"></i> Próximos Cumpleaños (30 días)</h5>
-        </div>
-        <div class="card-body">
-            <div id="upcoming-birthdays" class="list-group">
-                <p class="text-muted text-center">Cargando...</p>
-            </div>
-        </div>
+    {% else %}
+    <div class="text-center py-12 px-6">
+        <span class="text-6xl mb-4 block">📅</span>
+        <h3 class="text-base font-semibold text-slate-900">Sin cumpleaños</h3>
+        <p class="mt-2 text-sm text-slate-500">No hay cumpleaños registrados en {{ month_name }} {{ selected_year }}.</p>
     </div>
+    {% endif %}
+</div>
 
-    <!-- Acciones -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="btn-group" role="group">
-                <button class="btn btn-outline-secondary" onclick="window.print()">
-                    <i class="fas fa-print"></i> Imprimir
-                </button>
-                <button class="btn btn-outline-primary" onclick="downloadCalendar()">
-                    <i class="fas fa-download"></i> Descargar Calendario
-                </button>
-            </div>
+<!-- Yearly Overview -->
+<div class="bg-white rounded-xl shadow-sm ring-1 ring-slate-900/5 overflow-hidden mb-6">
+    <div class="border-b border-slate-100 px-6 py-4">
+        <h3 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+            <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+            </svg>
+            Vista Anual {{ selected_year }}
+        </h3>
+    </div>
+    <div class="p-6">
+        <div class="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+            {% for month_num, month_name_item in months %}
+            <a href="?month={{ month_num }}&year={{ selected_year }}" 
+               class="block rounded-lg p-3 text-center transition-colors {% if month_num == selected_month %}bg-primary-600 text-white{% else %}bg-slate-50 hover:bg-slate-100 text-slate-700{% endif %}">
+                <p class="text-sm font-medium">{{ month_name_item }}</p>
+            </a>
+            {% endfor %}
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script>
-$(document).ready(function() {
-    // Cargar próximos cumpleaños
-    loadUpcomingBirthdays();
-});
-
-function loadUpcomingBirthdays() {
-    // Simulación - en producción esto sería una llamada AJAX
-    const upcomingHtml = `
-        <div class="list-group-item">
-            <small class="text-muted">Esta función requiere implementación adicional para mostrar cumpleaños de los próximos 30 días</small>
-        </div>
-    `;
-    $('#upcoming-birthdays').html(upcomingHtml);
-}
-
-function downloadCalendar() {
-    alert('Función de descarga de calendario en desarrollo');
-}
-</script>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-.card:hover {
-    transform: translateY(-2px);
-}
-
-@media print {
-    .btn-group, .form-select, .card-header {
-        display: none !important;
-    }
-    
-    .card {
-        break-inside: avoid;
-        margin-bottom: 1rem !important;
-    }
-}
-
-/* Estilo especial para cumpleaños de hoy */
-.border-warning.border-2 {
-    border-width: 3px !important;
-    box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
-}
-</style>
+<!-- Actions -->
+<div class="flex items-center gap-3">
+    <button onclick="window.print()" 
+            class="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors">
+        <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
+        </svg>
+        Imprimir
+    </button>
+</div>
 {% endblock %}

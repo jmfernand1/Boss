@@ -3,7 +3,7 @@
 {% block title %}{{ title }} - BOSS{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
+<div class="max-w-3xl mx-auto">
     <!-- Page Header -->
     <div class="mb-8">
         <a href="{{ back_url }}" 
@@ -102,88 +102,4 @@
         </form>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    /* Form input styling for Tailwind */
-    .form-control,
-    select,
-    textarea,
-    input[type="text"],
-    input[type="email"],
-    input[type="password"],
-    input[type="number"],
-    input[type="date"],
-    input[type="time"],
-    input[type="datetime-local"],
-    input[type="url"] {
-        display: block;
-        width: 100%;
-        padding: 0.625rem 0.75rem;
-        font-size: 0.875rem;
-        line-height: 1.5rem;
-        color: #1e293b;
-        background-color: #ffffff;
-        border: none;
-        border-radius: 0.5rem;
-        box-shadow: inset 0 0 0 1px #e2e8f0;
-    }
-    
-    .form-control:focus,
-    select:focus,
-    textarea:focus,
-    input[type="text"]:focus,
-    input[type="email"]:focus,
-    input[type="password"]:focus,
-    input[type="number"]:focus,
-    input[type="date"]:focus,
-    input[type="time"]:focus,
-    input[type="datetime-local"]:focus,
-    input[type="url"]:focus {
-        outline: none;
-        box-shadow: inset 0 0 0 2px #3b82f6;
-    }
-    
-    select {
-        padding-right: 2.5rem;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-        background-position: right 0.5rem center;
-        background-repeat: no-repeat;
-        background-size: 1.5em 1.5em;
-        appearance: none;
-    }
-    
-    textarea {
-        min-height: 100px;
-        resize: vertical;
-    }
-    
-    input[type="checkbox"] {
-        width: 1rem;
-        height: 1rem;
-        border-radius: 0.25rem;
-        border: 1px solid #d1d5db;
-        color: #3b82f6;
-    }
-    
-    input[type="checkbox"]:checked {
-        background-color: #3b82f6;
-        border-color: #3b82f6;
-    }
-    
-    input[type="checkbox"]:focus {
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-    
-    .form-control:disabled,
-    select:disabled,
-    textarea:disabled,
-    input:disabled {
-        background-color: #f8fafc;
-        color: #94a3b8;
-        cursor: not-allowed;
-    }
-</style>
 {% endblock %}

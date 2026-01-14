@@ -3,7 +3,7 @@
 {% block title %}{{ title }} - BOSS{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
+<div class="max-w-3xl mx-auto">
     <!-- Page Header -->
     <div class="mb-8">
         <a href="{{ back_url }}" 
@@ -102,41 +102,4 @@
         </form>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-    /* Form input styling for Tailwind */
-    .form-control,
-    select,
-    textarea,
-    input[type="text"],
-    input[type="email"],
-    input[type="password"],
-    input[type="number"],
-    input[type="date"],
-    input[type="time"],
-    input[type="datetime-local"] {
-        @apply block w-full rounded-lg border-0 py-2.5 px-3 text-slate-900 ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm;
-    }
-    
-    select {
-        @apply pr-10;
-    }
-    
-    textarea {
-        @apply min-h-[100px];
-    }
-    
-    input[type="checkbox"] {
-        @apply h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-600;
-    }
-    
-    .form-control:disabled,
-    select:disabled,
-    textarea:disabled,
-    input:disabled {
-        @apply bg-slate-50 text-slate-500 cursor-not-allowed;
-    }
-</style>
 {% endblock %}
